@@ -6,12 +6,14 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.Network
+import android.net.http.SslError
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.webkit.SslErrorHandler
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
@@ -120,9 +122,11 @@ class KioskActivity : AppCompatActivity() {
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
         settings.allowFileAccess = true
+        settings.allowContentAccess = true
         settings.useWideViewPort = true
         settings.loadWithOverviewMode = true
         settings.mediaPlaybackRequiresUserGesture = false
+        settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
         webView.addJavascriptInterface(KioskJavaScriptInterface(this), "SmartKiosk")
 
@@ -132,12 +136,22 @@ class KioskActivity : AppCompatActivity() {
                 offlineContainer.visibility = View.GONE
             }
 
+            @SuppressLint("WebViewClientOnReceivedSslError")
+            override fun onReceivedSslError(
+                view: WebView?,
+                handler: SslErrorHandler?,
+                error: SslError?
+            ) {
+                // Automatically bypass SSL certificate warnings for local HTTPS servers
+                handler?.proceed()
+            }
+
             override fun onReceivedError(
                 view: WebView?,
                 request: WebResourceRequest?,
                 error: WebResourceError?
             ) {
-                if (request?.isForMainFrame == true) {
+                if (request?.isForMainFrame == true && error?.errorCode == ERROR_HOST_LOOKUP) {
                     offlineContainer.visibility = View.VISIBLE
                 }
             }
