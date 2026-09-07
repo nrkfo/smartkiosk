@@ -65,6 +65,9 @@ class KioskHttpServer(
                         "mediaUrl": "${prefs.mediaUrl}",
                         "serverPort": ${prefs.serverPort},
                         "pageZoom": ${prefs.pageZoomPercent},
+                        "scheduledReloadHour": ${prefs.scheduledReloadHour},
+                        "scheduledReloadEnabled": ${prefs.isScheduledReloadEnabled},
+                        "clearCacheOnReload": ${prefs.isClearCacheOnReload},
                         "kioskEnabled": ${prefs.isKioskModeEnabled},
                         "autoLaunchEnabled": ${prefs.isAutoLaunchEnabled},
                         "blockDownloads": ${prefs.isBlockDownloads},
@@ -85,16 +88,26 @@ class KioskHttpServer(
                 val newUrl = params["startUrl"]
                 val newPin = params["adminPin"]
                 val newMediaUrl = params["mediaUrl"]
+                val newPort = params["serverPort"]?.toIntOrNull()
+                val newZoom = params["pageZoomPercent"]?.toIntOrNull()
+                val newReloadHour = params["scheduledReloadHour"]?.toIntOrNull()
                 val kioskEnabled = params["kioskEnabled"]?.toBoolean()
                 val autoLaunchEnabled = params["autoLaunchEnabled"]?.toBoolean()
+                val clearCacheOnReload = params["clearCacheOnReload"]?.toBoolean()
+                val scheduledReloadEnabled = params["scheduledReloadEnabled"]?.toBoolean()
                 val blockDownloads = params["blockDownloads"]?.toBoolean()
                 val disableTextSelection = params["disableTextSelection"]?.toBoolean()
 
                 if (!newUrl.isNullOrEmpty()) prefs.startUrl = newUrl
                 if (!newPin.isNullOrEmpty()) prefs.adminPin = newPin
                 if (newMediaUrl != null) prefs.mediaUrl = newMediaUrl
+                if (newPort != null && newPort in 1024..65535) prefs.serverPort = newPort
+                if (newZoom != null && newZoom in 50..300) prefs.pageZoomPercent = newZoom
+                if (newReloadHour != null && newReloadHour in 0..23) prefs.scheduledReloadHour = newReloadHour
                 if (kioskEnabled != null) prefs.isKioskModeEnabled = kioskEnabled
                 if (autoLaunchEnabled != null) prefs.isAutoLaunchEnabled = autoLaunchEnabled
+                if (clearCacheOnReload != null) prefs.isClearCacheOnReload = clearCacheOnReload
+                if (scheduledReloadEnabled != null) prefs.isScheduledReloadEnabled = scheduledReloadEnabled
                 if (blockDownloads != null) prefs.isBlockDownloads = blockDownloads
                 if (disableTextSelection != null) prefs.isDisableTextSelection = disableTextSelection
 
@@ -256,7 +269,7 @@ class KioskHttpServer(
                         .sub-note { color: #C7D2FE; font-size: 14px; }
                         h1, h2 { color: #00E676; margin-top: 0; }
                         label { display: block; margin-top: 16px; font-weight: bold; color: #A1A1AA; }
-                        input[type="text"], input[type="password"] { width: 100%; padding: 14px; margin-top: 8px; box-sizing: border-box; background: #22222E; border: 1px solid #3F3F4E; color: #fff; border-radius: 8px; font-size: 16px; }
+                        input[type="text"], input[type="password"], select { width: 100%; padding: 14px; margin-top: 8px; box-sizing: border-box; background: #22222E; border: 1px solid #3F3F4E; color: #fff; border-radius: 8px; font-size: 16px; }
                         .checkbox-label { display: flex; align-items: center; gap: 10px; margin-top: 14px; cursor: pointer; color: #FFF; font-size: 15px; }
                         .checkbox-label input[type="checkbox"] { width: 20px; height: 20px; accent-color: #00E676; }
                         button { background: #00E676; color: #000; border: none; padding: 14px 24px; margin-top: 20px; cursor: pointer; border-radius: 8px; font-size: 16px; font-weight: bold; transition: all 0.2s; width: 100%; }
@@ -293,8 +306,7 @@ class KioskHttpServer(
                     $welcomeBannerHtml
 
                     <div class="card">
-                        <h1>⚙️ Все настройки Smart TV Kiosk</h1>
-                        <p>Настройки синхронизированы 1:1 с интерфейсом на самом телевизоре</p>
+                        <h1>⚙️ Панель Управления Smart TV Kiosk</h1>
                         
                         <form id="settingsForm" onsubmit="submitAllSettings(event)">
                             <label for="startUrl">Адрес стартовой веб-страницы (Start URL):</label>
@@ -305,6 +317,27 @@ class KioskHttpServer(
 
                             <label for="mediaUrl">Digital Signage URL (видео-реклама, опционально):</label>
                             <input type="text" id="mediaUrl" name="mediaUrl" value="${prefs.mediaUrl}">
+
+                            <label for="serverPort">Порт веб-сервера управления (по умолчанию 8080):</label>
+                            <input type="text" id="serverPort" name="serverPort" value="${prefs.serverPort}">
+
+                            <label for="pageZoomPercent">Масштабирование страниц (Page Zoom):</label>
+                            <select id="pageZoomPercent" name="pageZoomPercent">
+                                <option value="80" ${if (prefs.pageZoomPercent == 80) "selected" else ""}>80%</option>
+                                <option value="100" ${if (prefs.pageZoomPercent == 100) "selected" else ""}>100% (По умолчанию)</option>
+                                <option value="125" ${if (prefs.pageZoomPercent == 125) "selected" else ""}>125%</option>
+                                <option value="150" ${if (prefs.pageZoomPercent == 150) "selected" else ""}>150%</option>
+                                <option value="200" ${if (prefs.pageZoomPercent == 200) "selected" else ""}>200%</option>
+                            </select>
+
+                            <label for="scheduledReloadHour">Час ночной автоперезагрузки страницы (0-23 ч):</label>
+                            <select id="scheduledReloadHour" name="scheduledReloadHour">
+                                <option value="1" ${if (prefs.scheduledReloadHour == 1) "selected" else ""}>01:00 AM</option>
+                                <option value="2" ${if (prefs.scheduledReloadHour == 2) "selected" else ""}>02:00 AM</option>
+                                <option value="3" ${if (prefs.scheduledReloadHour == 3) "selected" else ""}>03:00 AM (По умолчанию)</option>
+                                <option value="4" ${if (prefs.scheduledReloadHour == 4) "selected" else ""}>04:00 AM</option>
+                                <option value="5" ${if (prefs.scheduledReloadHour == 5) "selected" else ""}>05:00 AM</option>
+                            </select>
 
                             <label class="checkbox-label">
                                 <input type="checkbox" id="kioskEnabled" ${if (prefs.isKioskModeEnabled) "checked" else ""}>
@@ -317,6 +350,16 @@ class KioskHttpServer(
                             </label>
 
                             <label class="checkbox-label">
+                                <input type="checkbox" id="clearCacheOnReload" ${if (prefs.isClearCacheOnReload) "checked" else ""}>
+                                🧹 Авто-очистка кэша при перезагрузке
+                            </label>
+
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="scheduledReloadEnabled" ${if (prefs.isScheduledReloadEnabled) "checked" else ""}>
+                                🌙 Ночная плановая автоперезагрузка
+                            </label>
+
+                            <label class="checkbox-label">
                                 <input type="checkbox" id="blockDownloads" ${if (prefs.isBlockDownloads) "checked" else ""}>
                                 🛡️ Блокировать скачивание файлов (.apk, .pdf)
                             </label>
@@ -326,7 +369,7 @@ class KioskHttpServer(
                                 🚫 Запретить выделение текста на страницах
                             </label>
 
-                            <button type="submit">💾 Сохранить и применить на TV</button>
+                            <button type="submit">💾 Сохранить и применить все настройки</button>
                         </form>
                         
                         <div class="button-group">
@@ -344,7 +387,7 @@ class KioskHttpServer(
                             <tr><td><b>Сигнал Wi-Fi / Сеть:</b></td><td><span style="color:#00E5FF; font-weight:bold;">$wifiStr</span></td></tr>
                             <tr><td><b>Оперативная память (RAM):</b></td><td>$ramStr</td></tr>
                             <tr><td><b>Накопитель (Flash Storage):</b></td><td>$storageStr</td></tr>
-                            <tr><td><b>Ночная автоперезагрузка:</b></td><td>Включена (${prefs.scheduledReloadHour}:00 AM)</td></tr>
+                            <tr><td><b>Ночная автоперезагрузка:</b></td><td>${if (prefs.isScheduledReloadEnabled) "Включена (${prefs.scheduledReloadHour}:00 AM)" else "Отключена"}</td></tr>
                             <tr><td><b>Модель TV:</b></td><td>${Build.MANUFACTURER} ${Build.MODEL}</td></tr>
                             <tr><td><b>Android Version:</b></td><td>Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})</td></tr>
                             <tr><td><b>Device Owner Status:</b></td><td>${if (isOwner) "🟢 Активен (LockTask Mode)" else "⚠️ Нет прав Device Owner"}</td></tr>
@@ -371,8 +414,13 @@ class KioskHttpServer(
                             body.append('startUrl', document.getElementById('startUrl').value);
                             body.append('adminPin', document.getElementById('adminPin').value);
                             body.append('mediaUrl', document.getElementById('mediaUrl').value);
+                            body.append('serverPort', document.getElementById('serverPort').value);
+                            body.append('pageZoomPercent', document.getElementById('pageZoomPercent').value);
+                            body.append('scheduledReloadHour', document.getElementById('scheduledReloadHour').value);
                             body.append('kioskEnabled', document.getElementById('kioskEnabled').checked);
                             body.append('autoLaunchEnabled', document.getElementById('autoLaunchEnabled').checked);
+                            body.append('clearCacheOnReload', document.getElementById('clearCacheOnReload').checked);
+                            body.append('scheduledReloadEnabled', document.getElementById('scheduledReloadEnabled').checked);
                             body.append('blockDownloads', document.getElementById('blockDownloads').checked);
                             body.append('disableTextSelection', document.getElementById('disableTextSelection').checked);
 

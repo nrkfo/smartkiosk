@@ -168,6 +168,26 @@
             android:textColor="#FFFFFF"
             android:textSize="16sp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Порт веб-сервера управления (Web Admin Port):"
+            android:textColor="#E4E4E7"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_server_port"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_tv_input"
+            android:focusable="true"
+            android:inputType="number"
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
         <!-- Switches / Checkboxes -->
         <CheckBox
             android:id="@+id/cb_kiosk_enabled"
@@ -188,6 +208,28 @@
             android:focusable="true"
             android:paddingStart="8dp"
             android:text="🚀 Автозапуск при включении Smart TV"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <CheckBox
+            android:id="@+id/cb_clear_cache_reload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:focusable="true"
+            android:paddingStart="8dp"
+            android:text="🧹 Авто-очистка кэша при перезагрузке"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <CheckBox
+            android:id="@+id/cb_scheduled_reload"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:focusable="true"
+            android:paddingStart="8dp"
+            android:text="🌙 Ночная плановая автоперезагрузка (03:00 AM)"
             android:textColor="#FFFFFF"
             android:textSize="16sp" />
 

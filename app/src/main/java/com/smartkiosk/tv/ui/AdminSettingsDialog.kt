@@ -43,8 +43,11 @@ class AdminSettingsDialog(
         val etUrl = findViewById<EditText>(R.id.et_start_url)
         val etPin = findViewById<EditText>(R.id.et_admin_pin)
         val etMediaUrl = findViewById<EditText>(R.id.et_media_url)
+        val etServerPort = findViewById<EditText>(R.id.et_server_port)
         val cbKiosk = findViewById<CheckBox>(R.id.cb_kiosk_enabled)
         val cbAutoLaunch = findViewById<CheckBox>(R.id.cb_auto_launch)
+        val cbClearCacheReload = findViewById<CheckBox>(R.id.cb_clear_cache_reload)
+        val cbScheduledReload = findViewById<CheckBox>(R.id.cb_scheduled_reload)
         val cbBlockDownloads = findViewById<CheckBox>(R.id.cb_block_downloads)
         val cbDisableSelection = findViewById<CheckBox>(R.id.cb_disable_selection)
         val tvNetworkInfo = findViewById<TextView>(R.id.tv_network_info)
@@ -58,8 +61,11 @@ class AdminSettingsDialog(
         etUrl.setText(prefs.startUrl)
         etPin.setText(prefs.adminPin)
         etMediaUrl.setText(prefs.mediaUrl)
+        etServerPort.setText(prefs.serverPort.toString())
         cbKiosk.isChecked = prefs.isKioskModeEnabled
         cbAutoLaunch.isChecked = prefs.isAutoLaunchEnabled
+        cbClearCacheReload.isChecked = prefs.isClearCacheOnReload
+        cbScheduledReload.isChecked = prefs.isScheduledReloadEnabled
         cbBlockDownloads.isChecked = prefs.isBlockDownloads
         cbDisableSelection.isChecked = prefs.isDisableTextSelection
 
@@ -90,13 +96,17 @@ class AdminSettingsDialog(
             val newUrl = etUrl.text.toString().trim()
             val newPin = etPin.text.toString().trim()
             val newMediaUrl = etMediaUrl.text.toString().trim()
+            val newPort = etServerPort.text.toString().trim().toIntOrNull()
 
             if (newUrl.isNotEmpty()) prefs.startUrl = newUrl
             if (newPin.isNotEmpty()) prefs.adminPin = newPin
             prefs.mediaUrl = newMediaUrl
+            if (newPort != null && newPort in 1024..65535) prefs.serverPort = newPort
 
             prefs.isKioskModeEnabled = cbKiosk.isChecked
             prefs.isAutoLaunchEnabled = cbAutoLaunch.isChecked
+            prefs.isClearCacheOnReload = cbClearCacheReload.isChecked
+            prefs.isScheduledReloadEnabled = cbScheduledReload.isChecked
             prefs.isBlockDownloads = cbBlockDownloads.isChecked
             prefs.isDisableTextSelection = cbDisableSelection.isChecked
 
@@ -113,7 +123,8 @@ class AdminSettingsDialog(
         // Apply TV Focus scale animation
         val focusableViews = listOf(
             btnQuickReload, btnQuickClearCache, btnSave, btnExit,
-            etUrl, etPin, etMediaUrl, cbKiosk, cbAutoLaunch, cbBlockDownloads, cbDisableSelection
+            etUrl, etPin, etMediaUrl, etServerPort,
+            cbKiosk, cbAutoLaunch, cbClearCacheReload, cbScheduledReload, cbBlockDownloads, cbDisableSelection
         )
         for (view in focusableViews) {
             applyTvFocusAnimation(view)
