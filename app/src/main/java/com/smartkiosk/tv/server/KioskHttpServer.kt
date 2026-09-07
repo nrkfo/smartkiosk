@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.SystemClock
 import com.smartkiosk.tv.data.PreferencesManager
 import com.smartkiosk.tv.dpc.KioskAdminReceiver
+import com.smartkiosk.tv.service.KioskWatchdogService
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -42,8 +43,11 @@ class KioskHttpServer(
             // API: Info
             get("/api/info") {
                 val isOwner = KioskAdminReceiver.isDeviceOwner(this@KioskHttpServer.context)
+                val ipAddress = KioskWatchdogService.getLocalIpAddress(this@KioskHttpServer.context)
                 val json = """
                     {
+                        "ipAddress": "$ipAddress",
+                        "webAdminUrl": "http://$ipAddress:${prefs.serverPort}",
                         "model": "${Build.MANUFACTURER} ${Build.MODEL}",
                         "sdk": ${Build.VERSION.SDK_INT},
                         "startUrl": "${prefs.startUrl}",
@@ -107,6 +111,9 @@ class KioskHttpServer(
     companion object {
         fun getDashboardHtml(context: Context, prefs: PreferencesManager): String {
             val isOwner = KioskAdminReceiver.isDeviceOwner(context)
+            val ipAddress = KioskWatchdogService.getLocalIpAddress(context)
+            val webAdminUrl = "http://$ipAddress:${prefs.serverPort}"
+
             return """
                 <!DOCTYPE html>
                 <html lang="ru">
@@ -126,6 +133,8 @@ class KioskHttpServer(
                         .btn-danger { background: #FF5252; color: #fff; }
                         .info-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
                         .info-table td { padding: 10px; border-bottom: 1px solid #272732; font-size: 15px; }
+                        .ip-highlight { color: #00E5FF; font-weight: bold; font-size: 16px; }
+                        .url-highlight { color: #00E676; font-weight: bold; font-size: 16px; word-break: break-all; }
                     </style>
                 </head>
                 <body>
@@ -152,6 +161,8 @@ class KioskHttpServer(
                     <div class="card">
                         <h2>📊 Телеметрия устройства</h2>
                         <table class="info-table">
+                            <tr><td><b>IP-адрес TV в сети (Wi-Fi/LAN):</b></td><td><span class="ip-highlight">$ipAddress</span></td></tr>
+                            <tr><td><b>Ссылка веб-админки (с компьютера):</b></td><td><span class="url-highlight">$webAdminUrl</span></td></tr>
                             <tr><td><b>Модель TV:</b></td><td>${Build.MANUFACTURER} ${Build.MODEL}</td></tr>
                             <tr><td><b>Android Version:</b></td><td>Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})</td></tr>
                             <tr><td><b>Device Owner Status:</b></td><td>${if (isOwner) "🟢 Активен (LockTask Mode)" else "⚠️ Нет прав Device Owner"}</td></tr>
