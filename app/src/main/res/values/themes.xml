@@ -1,0 +1,4 @@
+<resources>
+
+    <style name="Theme.SmartKiosk" parent="@style/Theme.Leanback" />
+</resources>
