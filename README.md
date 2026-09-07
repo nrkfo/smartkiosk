@@ -1,6 +1,9 @@
 # 📺 Smart TV Kiosk (Android TV)
 
 <p align="center">
+  <a href="https://github.com/nrkfo/smartkiosk/releases/download/v1.0.0-beta.1/SmartKiosk-v1.0.0-beta.1.apk">
+    <img src="https://img.shields.io/badge/Download-SmartKiosk%20v1.0.0--beta.1%20APK-00E676?style=for-the-badge&logo=android&logoColor=black" alt="Download APK" />
+  </a>
   <img src="https://img.shields.io/badge/Version-v1.0.0--beta.1-FF9800?style=for-the-badge&logo=github&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/Platform-Android%20TV%20%7C%20Google%20TV-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android TV" />
   <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
@@ -113,27 +116,19 @@
 
 ## 🚀 Быстрый старт и установка
 
-### 1. Сборка проекта
-Клонируйте репозиторий и соберите APK с помощью Gradle:
-
-```bash
-git clone https://github.com/nrkfo/smartkiosk.git
-cd smartkiosk
-./gradlew assembleDebug
-```
-
-Итоговый APK файл будет находиться по адресу:  
-`app/build/outputs/apk/debug/app-debug.apk`
+### 1. Прямое скачивание готового APK
+Вы можете сразу скачать скомпилированный APK файл для установки на Smart TV:
+👉 **[Скачать SmartKiosk v1.0.0-beta.1 APK](https://github.com/nrkfo/smartkiosk/releases/download/v1.0.0-beta.1/SmartKiosk-v1.0.0-beta.1.apk)**
 
 ---
 
 ### 2. Установка на Android TV через ADB
 
-Подключитесь к вашему Smart TV по сети:
+Подключитесь к вашему Smart TV по сети и установите файл:
 
 ```bash
 adb connect <IP_АДРЕС_ТЕЛЕВИЗОРА>:5555
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r SmartKiosk-v1.0.0-beta.1.apk
 ```
 
 ---
