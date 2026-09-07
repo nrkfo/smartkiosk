@@ -43,11 +43,15 @@ class KioskHttpServer(
             // API: Info
             get("/api/info") {
                 val isOwner = KioskAdminReceiver.isDeviceOwner(this@KioskHttpServer.context)
-                val ipAddress = KioskWatchdogService.getLocalIpAddress(this@KioskHttpServer.context)
+                val rawIp = KioskWatchdogService.getLocalIpAddress(this@KioskHttpServer.context)
+                val isEmulator = rawIp.startsWith("10.0.2.") || Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk")
+                val webAdminUrl = if (isEmulator) "http://127.0.0.1:${prefs.serverPort}" else "http://$rawIp:${prefs.serverPort}"
+
                 val json = """
                     {
-                        "ipAddress": "$ipAddress",
-                        "webAdminUrl": "http://$ipAddress:${prefs.serverPort}",
+                        "ipAddress": "$rawIp",
+                        "isEmulator": $isEmulator,
+                        "webAdminUrl": "$webAdminUrl",
                         "model": "${Build.MANUFACTURER} ${Build.MODEL}",
                         "sdk": ${Build.VERSION.SDK_INT},
                         "startUrl": "${prefs.startUrl}",
@@ -111,8 +115,12 @@ class KioskHttpServer(
     companion object {
         fun getDashboardHtml(context: Context, prefs: PreferencesManager): String {
             val isOwner = KioskAdminReceiver.isDeviceOwner(context)
-            val ipAddress = KioskWatchdogService.getLocalIpAddress(context)
-            val webAdminUrl = "http://$ipAddress:${prefs.serverPort}"
+            val rawIp = KioskWatchdogService.getLocalIpAddress(context)
+            val isEmulator = rawIp.startsWith("10.0.2.") || Build.FINGERPRINT.contains("generic") || Build.MODEL.contains("sdk")
+
+            val displayIp = if (isEmulator) "$rawIp (Внутренний IP эмулятора)" else rawIp
+            val webAdminUrl = if (isEmulator) "http://127.0.0.1:${prefs.serverPort}" else "http://$rawIp:${prefs.serverPort}"
+            val noteText = if (isEmulator) "💡 Вы запущены в эмуляторе. Для доступа с компьютера Mac переходите по ссылке <b>http://127.0.0.1:${prefs.serverPort}</b>. На реальном Smart TV здесь будет реальный IP вашей Wi-Fi сети." else "Подключайтесь с любого устройства в той же Wi-Fi/Ethernet сети."
 
             return """
                 <!DOCTYPE html>
@@ -135,6 +143,7 @@ class KioskHttpServer(
                         .info-table td { padding: 10px; border-bottom: 1px solid #272732; font-size: 15px; }
                         .ip-highlight { color: #00E5FF; font-weight: bold; font-size: 16px; }
                         .url-highlight { color: #00E676; font-weight: bold; font-size: 16px; word-break: break-all; }
+                        .note-banner { background: #1E1B4B; border: 1px solid #4338CA; padding: 14px; border-radius: 10px; margin-top: 16px; font-size: 14px; color: #C7D2FE; line-height: 1.5; }
                     </style>
                 </head>
                 <body>
@@ -161,14 +170,14 @@ class KioskHttpServer(
                     <div class="card">
                         <h2>📊 Телеметрия устройства</h2>
                         <table class="info-table">
-                            <tr><td><b>IP-адрес TV в сети (Wi-Fi/LAN):</b></td><td><span class="ip-highlight">$ipAddress</span></td></tr>
+                            <tr><td><b>IP-адрес TV в сети:</b></td><td><span class="ip-highlight">$displayIp</span></td></tr>
                             <tr><td><b>Ссылка веб-админки (с компьютера):</b></td><td><span class="url-highlight">$webAdminUrl</span></td></tr>
                             <tr><td><b>Модель TV:</b></td><td>${Build.MANUFACTURER} ${Build.MODEL}</td></tr>
                             <tr><td><b>Android Version:</b></td><td>Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})</td></tr>
                             <tr><td><b>Device Owner Status:</b></td><td>${if (isOwner) "🟢 Активен (LockTask Mode)" else "⚠️ Нет прав Device Owner"}</td></tr>
                             <tr><td><b>Uptime (Время работы):</b></td><td>${SystemClock.elapsedRealtime() / 1000 / 60} мин</td></tr>
-                            <tr><td><b>Порт управления:</b></td><td>${prefs.serverPort}</td></tr>
                         </table>
+                        <div class="note-banner">$noteText</div>
                     </div>
                 </body>
                 </html>
