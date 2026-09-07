@@ -59,6 +59,14 @@ class KioskActivity : AppCompatActivity() {
             reloadWebView()
         }
 
+        btnRetryNetwork.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
+                v.animate().scaleX(1.08f).scaleY(1.08f).setDuration(120).start()
+            } else {
+                v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+            }
+        }
+
         setupWebView()
         setupLockTaskMode()
         startWatchdogService()
@@ -255,6 +263,12 @@ class KioskActivity : AppCompatActivity() {
                     prefs.isKioskModeEnabled = false
                     stopLockTaskMode()
                     finish()
+                },
+                onQuickReloadListener = {
+                    reloadWebView()
+                },
+                onQuickClearCacheListener = {
+                    clearWebViewCache()
                 }
             )
             dialog.show()

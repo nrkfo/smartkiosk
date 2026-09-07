@@ -2,97 +2,180 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#1E1E1E"
-    android:padding="24dp">
+    android:background="@drawable/bg_tv_dialog"
+    android:padding="32dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <!-- TV Header Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📺 Панель Управления Smart TV Kiosk"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_device_owner_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_tv_card"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp"
+                android:text="🟢 LockTask Active"
+                android:textColor="#00E676"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Network Info Banner -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_tv_card"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_network_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌐 Web Remote Admin: http://192.168.1.100:8080"
+                android:textColor="#81D4FA"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Quick Action Tiles Section -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="⚙️ Панель Администратора Smart TV"
-            android:textColor="#4CAF50"
-            android:textSize="22sp"
+            android:layout_marginTop="24dp"
+            android:text="Быстрые действия на ТВ:"
+            android:textColor="#A1A1AA"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tv_network_info"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Web Remote Admin: http://127.0.0.1:8080"
-            android:textColor="#81C784"
-            android:textSize="14sp" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_quick_reload"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tv_button_secondary"
+                android:focusable="true"
+                android:padding="12dp"
+                android:text="🔄 Перезагрузить"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_quick_clear_cache"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tv_button_secondary"
+                android:focusable="true"
+                android:padding="12dp"
+                android:text="🧹 Очистить Кэш"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginVertical="16dp"
-            android:background="#333333" />
+            android:layout_marginVertical="24dp"
+            android:background="#27272A" />
 
+        <!-- Settings Inputs Card -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Адрес стартовой страницы (URL):"
-            android:textColor="#FFFFFF"
+            android:text="Адрес стартовой веб-страницы (Start URL):"
+            android:textColor="#E4E4E7"
             android:textSize="16sp" />
 
         <EditText
             android:id="@+id/et_start_url"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:background="#2C2C2C"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_tv_input"
             android:focusable="true"
             android:inputType="textUri"
-            android:padding="12dp"
-            android:textColor="#FFFFFF" />
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="PIN-код администратора:"
-            android:textColor="#FFFFFF"
+            android:textColor="#E4E4E7"
             android:textSize="16sp" />
 
         <EditText
             android:id="@+id/et_admin_pin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:background="#2C2C2C"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_tv_input"
             android:focusable="true"
             android:inputType="numberPassword"
             android:maxLength="8"
-            android:padding="12dp"
-            android:textColor="#FFFFFF" />
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
 
+        <!-- Switches / Checkboxes -->
         <CheckBox
             android:id="@+id/cb_kiosk_enabled"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="20dp"
             android:focusable="true"
-            android:text="Включить Kiosk Mode (LockTask)"
-            android:textColor="#FFFFFF" />
+            android:paddingStart="8dp"
+            android:text="🔒 Режим Киоска (LockTask Mode)"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
 
         <CheckBox
             android:id="@+id/cb_auto_launch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
             android:focusable="true"
-            android:text="Автозапуск при включении Smart TV"
-            android:textColor="#FFFFFF" />
+            android:paddingStart="8dp"
+            android:text="🚀 Автозапуск при включении Smart TV"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
 
+        <!-- Bottom Action Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             android:gravity="end"
             android:orientation="horizontal">
 
@@ -100,18 +183,28 @@
                 android:id="@+id/btn_exit_kiosk"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="12dp"
-                android:backgroundTint="#F44336"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_tv_button_danger"
                 android:focusable="true"
-                android:text="Выйти из киоска" />
+                android:paddingHorizontal="24dp"
+                android:paddingVertical="12dp"
+                android:text="🚪 Выйти из киоска"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btn_save_settings"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#4CAF50"
+                android:background="@drawable/bg_tv_button_primary"
                 android:focusable="true"
-                android:text="Сохранить" />
+                android:paddingHorizontal="32dp"
+                android:paddingVertical="12dp"
+                android:text="💾 Сохранить"
+                android:textColor="#000000"
+                android:textSize="15sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
     </LinearLayout>
