@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.View
 import android.view.Window
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -69,6 +70,12 @@ class AdminSettingsDialog(
         cbBlockDownloads.isChecked = prefs.isBlockDownloads
         cbDisableSelection.isChecked = prefs.isDisableTextSelection
 
+        // Configure TV EditTexts: Disable auto keyboard on focus, show ONLY when OK/Center is clicked
+        configureTvEditText(etUrl)
+        configureTvEditText(etPin)
+        configureTvEditText(etMediaUrl)
+        configureTvEditText(etServerPort)
+
         val isOwner = KioskAdminReceiver.isDeviceOwner(context)
         if (isOwner) {
             tvDeviceOwnerBadge.text = "🟢 LockTask Active"
@@ -123,11 +130,33 @@ class AdminSettingsDialog(
         // Apply TV Focus scale animation
         val focusableViews = listOf(
             btnQuickReload, btnQuickClearCache, btnSave, btnExit,
-            etUrl, etPin, etMediaUrl, etServerPort,
             cbKiosk, cbAutoLaunch, cbClearCacheReload, cbScheduledReload, cbBlockDownloads, cbDisableSelection
         )
         for (view in focusableViews) {
             applyTvFocusAnimation(view)
+        }
+    }
+
+    private fun configureTvEditText(editText: EditText) {
+        // Prevent automatic soft keyboard popup when navigating with DPAD
+        editText.showSoftInputOnFocus = false
+
+        editText.setOnClickListener {
+            // Show keyboard ONLY when user explicitly presses OK / Center on the focused field
+            editText.showSoftInputOnFocus = true
+            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+        }
+
+        editText.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
+                v.animate().scaleX(1.05f).scaleY(1.05f).setDuration(120).start()
+            } else {
+                v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
+                editText.showSoftInputOnFocus = false
+                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+                imm?.hideSoftInputFromWindow(v.windowToken, 0)
+            }
         }
     }
 
