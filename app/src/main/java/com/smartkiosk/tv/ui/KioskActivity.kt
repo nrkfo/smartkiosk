@@ -21,7 +21,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -41,7 +40,6 @@ class KioskActivity : AppCompatActivity() {
     private lateinit var playerView: PlayerView
     private lateinit var offlineContainer: LinearLayout
     private lateinit var btnRetryNetwork: Button
-    private lateinit var btnFloatingAdmin: ImageButton
     private lateinit var prefs: PreferencesManager
 
     private var exoPlayer: ExoPlayer? = null
@@ -59,7 +57,6 @@ class KioskActivity : AppCompatActivity() {
         playerView = findViewById(R.id.player_view)
         offlineContainer = findViewById(R.id.offline_container)
         btnRetryNetwork = findViewById(R.id.btn_retry_network)
-        btnFloatingAdmin = findViewById(R.id.btn_floating_admin)
 
         btnRetryNetwork.setOnClickListener {
             reloadWebView()
@@ -70,19 +67,6 @@ class KioskActivity : AppCompatActivity() {
                 v.animate().scaleX(1.08f).scaleY(1.08f).setDuration(120).start()
             } else {
                 v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
-            }
-        }
-
-        // Floating Top-Right Admin Button
-        btnFloatingAdmin.setOnClickListener {
-            promptAdminPin()
-        }
-
-        btnFloatingAdmin.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) {
-                v.animate().alpha(1.0f).scaleX(1.15f).scaleY(1.15f).setDuration(120).start()
-            } else {
-                v.animate().alpha(0.2f).scaleX(1.0f).scaleY(1.0f).setDuration(120).start()
             }
         }
 

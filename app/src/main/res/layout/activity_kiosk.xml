@@ -22,21 +22,6 @@
         android:focusable="false"
         android:visibility="gone" />
 
-    <!-- Subtle Top-Right Floating Admin Gear Button -->
-    <ImageButton
-        android:id="@+id/btn_floating_admin"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_gravity="top|end"
-        android:layout_margin="16dp"
-        android:alpha="0.2"
-        android:background="@drawable/bg_tv_card"
-        android:contentDescription="@string/app_name"
-        android:focusable="true"
-        android:padding="10dp"
-        android:src="@android:drawable/ic_menu_preferences"
-        app:tint="#FFFFFF" />
-
     <!-- Offline / Network Error Overlay -->
     <LinearLayout
         android:id="@+id/offline_container"
