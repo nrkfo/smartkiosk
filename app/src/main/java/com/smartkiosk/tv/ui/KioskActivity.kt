@@ -215,49 +215,57 @@ class KioskActivity : AppCompatActivity() {
         })
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        // TV Remote Secret Combo to open Admin Panel (Press DPAD_UP 5 times within 3 seconds)
-        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
-            val now = System.currentTimeMillis()
-            if (now - lastDpadTime < 1000) {
-                dpadUpCounter++
-            } else {
-                dpadUpCounter = 1
-            }
-            lastDpadTime = now
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            val keyCode = event.keyCode
 
-            if (dpadUpCounter >= 5) {
-                dpadUpCounter = 0
-                promptAdminPin()
+            // TV Remote Secret Combo to open Admin Panel (Press DPAD_UP 5 times)
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) {
+                val now = System.currentTimeMillis()
+                if (now - lastDpadTime < 1200) {
+                    dpadUpCounter++
+                } else {
+                    dpadUpCounter = 1
+                }
+                lastDpadTime = now
+
+                if (dpadUpCounter >= 5) {
+                    dpadUpCounter = 0
+                    promptAdminPin()
+                    return true
+                }
+            }
+
+            // Intercept BACK button in Kiosk Mode
+            if (keyCode == KeyEvent.KEYCODE_BACK && prefs.isKioskModeEnabled) {
+                if (webView.visibility == View.VISIBLE && webView.canGoBack()) {
+                    webView.goBack()
+                }
                 return true
             }
         }
-
-        // Intercept BACK button in Kiosk Mode
-        if (keyCode == KeyEvent.KEYCODE_BACK && prefs.isKioskModeEnabled) {
-            if (webView.canGoBack()) {
-                webView.goBack()
-            }
-            return true
-        }
-
-        return super.onKeyDown(keyCode, event)
+        return super.dispatchKeyEvent(event)
     }
 
     private fun promptAdminPin() {
-        val input = EditText(this)
-        input.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+        runOnUiThread {
+            val input = EditText(this)
+            input.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            input.hint = "По умолчанию: 0000"
+            input.setPadding(32, 24, 32, 24)
+            input.textSize = 20f
 
-        AlertDialog.Builder(this)
-            .setTitle("🔒 Код Администратора")
-            .setMessage("Введите PIN-код для входа в настройки:")
-            .setView(input)
-            .setPositiveButton("Войти") { _, _ ->
-                val pin = input.text.toString().trim()
-                verifyAndOpenAdminDialog(pin)
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
+            AlertDialog.Builder(this)
+                .setTitle("🔒 Код Администратора")
+                .setMessage("Введите PIN-код для входа в настройки Smart TV:")
+                .setView(input)
+                .setPositiveButton("Войти") { _, _ ->
+                    val pin = input.text.toString().trim()
+                    verifyAndOpenAdminDialog(pin)
+                }
+                .setNegativeButton("Отмена", null)
+                .show()
+        }
     }
 
     fun verifyAndOpenAdminDialog(pin: String) {
