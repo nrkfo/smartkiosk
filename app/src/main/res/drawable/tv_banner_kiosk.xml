@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+
+    <!-- Dark Gradient TV Glass Background -->
+    <path
+        android:pathData="M0,0 L320,0 L320,180 L0,180 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="320"
+                android:endY="180"
+                android:startX="0"
+                android:startY="0"
+                android:type="linear">
+                <item android:color="#0B0B10" android:offset="0.0" />
+                <item android:color="#161624" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Glowing Outer Frame Border -->
+    <path
+        android:pathData="M8,8 L312,8 L312,172 L8,172 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#3000E5FF" />
+
+    <!-- Left Side: Neon SK Logo Badge Frame -->
+    <path
+        android:pathData="M28,32 L116,32 A10,10 0 0 1 126,42 L126,138 A10,10 0 0 1 116,148 L28,148 A10,10 0 0 1 18,138 L18,42 A10,10 0 0 1 28,32 Z"
+        android:fillColor="#12121D"
+        android:strokeWidth="2"
+        android:strokeColor="#00E5FF" />
+
+    <!-- Letter 'S' Glow -->
+    <path
+        android:pathData="M62,62 L42,62 L42,88 L62,92 L62,118 L42,118"
+        android:strokeWidth="14"
+        android:strokeColor="#3000E5FF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M62,62 L42,62 L42,88 L62,92 L62,118 L42,118"
+        android:strokeWidth="8"
+        android:strokeColor="#00E5FF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Letter 'K' Glow -->
+    <path
+        android:pathData="M80,62 L80,118 M102,62 L81,90 L104,118"
+        android:strokeWidth="14"
+        android:strokeColor="#3000E676"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M80,62 L80,118 M102,62 L81,90 L104,118"
+        android:strokeWidth="8"
+        android:strokeColor="#00E676"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Right Side Accent Lines & Tech Accents -->
+    <path
+        android:pathData="M148,124 L296,124"
+        android:strokeWidth="2"
+        android:strokeColor="#00E676" />
+
+    <path
+        android:pathData="M148,132 L220,132"
+        android:strokeWidth="2"
+        android:strokeColor="#00E5FF" />
+
+</vector>

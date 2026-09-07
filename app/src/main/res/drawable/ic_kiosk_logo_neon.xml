@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Dark TV Glass Background -->
+    <path
+        android:pathData="M24,12 L176,12 A12,12 0 0 1 188,24 L188,176 A12,12 0 0 1 176,188 L24,188 A12,12 0 0 1 12,176 L12,24 A12,12 0 0 1 24,12 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="200"
+                android:endY="200"
+                android:startX="0"
+                android:startY="0"
+                android:type="linear">
+                <item android:color="#0A0A0F" android:offset="0.0" />
+                <item android:color="#141420" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Outer Neon Glowing Border -->
+    <path
+        android:pathData="M24,12 L176,12 A12,12 0 0 1 188,24 L188,176 A12,12 0 0 1 176,188 L24,188 A12,12 0 0 1 12,176 L12,24 A12,12 0 0 1 24,12 Z"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:endX="200"
+                android:endY="200"
+                android:startX="0"
+                android:startY="0"
+                android:type="linear">
+                <item android:color="#00E5FF" android:offset="0.0" />
+                <item android:color="#00E676" android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Subtle Screen Border -->
+    <path
+        android:pathData="M32,24 L168,24 A8,8 0 0 1 176,32 L176,168 A8,8 0 0 1 168,176 L32,176 A8,8 0 0 1 24,168 L24,32 A8,8 0 0 1 32,24 Z"
+        android:strokeWidth="1"
+        android:strokeColor="#2000E5FF" />
+
+    <!-- Letter 'S' - Outer Glow Pass -->
+    <path
+        android:pathData="M88,68 L56,68 L56,98 L88,102 L88,132 L56,132"
+        android:strokeWidth="18"
+        android:strokeColor="#3000E5FF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Letter 'S' - Core Neon Pass -->
+    <path
+        android:pathData="M88,68 L56,68 L56,98 L88,102 L88,132 L56,132"
+        android:strokeWidth="10"
+        android:strokeColor="#00E5FF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Letter 'K' - Outer Glow Pass -->
+    <path
+        android:pathData="M112,68 L112,132 M144,68 L114,100 L146,132"
+        android:strokeWidth="18"
+        android:strokeColor="#3000E676"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Letter 'K' - Core Neon Pass -->
+    <path
+        android:pathData="M112,68 L112,132 M144,68 L114,100 L146,132"
+        android:strokeWidth="10"
+        android:strokeColor="#00E676"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Top-Right Neon Status Pulse Dot -->
+    <path
+        android:pathData="M162,38 A6,6 0 1,1 150,38 A6,6 0 1,1 162,38 Z"
+        android:fillColor="#00E676" />
+</vector>

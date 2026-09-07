@@ -21,7 +21,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_kiosk_logo_neon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.SmartKiosk.Kiosk"
@@ -30,11 +30,11 @@
         <!-- Kiosk Main Activity -->
         <activity
             android:name=".ui.KioskActivity"
-            android:banner="@drawable/app_icon_your_company"
+            android:banner="@drawable/tv_banner_kiosk"
             android:exported="true"
-            android:icon="@drawable/app_icon_your_company"
+            android:icon="@drawable/ic_kiosk_logo_neon"
             android:label="@string/app_name"
-            android:logo="@drawable/app_icon_your_company"
+            android:logo="@drawable/tv_banner_kiosk"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.SmartKiosk.Kiosk"
@@ -51,11 +51,11 @@
         <!-- Redirect MainActivity to KioskActivity -->
         <activity
             android:name=".MainActivity"
-            android:banner="@drawable/app_icon_your_company"
+            android:banner="@drawable/tv_banner_kiosk"
             android:exported="true"
-            android:icon="@drawable/app_icon_your_company"
+            android:icon="@drawable/ic_kiosk_logo_neon"
             android:label="@string/app_name"
-            android:logo="@drawable/app_icon_your_company"
+            android:logo="@drawable/tv_banner_kiosk"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.SmartKiosk.Kiosk">
             <intent-filter>
