@@ -397,6 +397,30 @@ class KioskHttpServer(
                     </div>
 
                     <script>
+                        // Prevent automatic TV soft keyboard popup during DPAD navigation
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+                            inputs.forEach(function(input) {
+                                input.setAttribute('readonly', 'readonly');
+                                
+                                input.addEventListener('click', function() {
+                                    this.removeAttribute('readonly');
+                                    this.focus();
+                                });
+
+                                input.addEventListener('keydown', function(e) {
+                                    if (e.key === 'Enter' || e.keyCode === 13) {
+                                        this.removeAttribute('readonly');
+                                        this.focus();
+                                    }
+                                });
+
+                                input.addEventListener('blur', function() {
+                                    this.setAttribute('readonly', 'readonly');
+                                });
+                            });
+                        });
+
                         function showToast(message, isError) {
                             const toast = document.getElementById('toast');
                             toast.innerText = message;
