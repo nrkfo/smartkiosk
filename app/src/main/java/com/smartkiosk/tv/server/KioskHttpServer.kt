@@ -159,39 +159,51 @@ class KioskHttpServer(
                         h1, h2 { color: #00E676; margin-top: 0; }
                         label { display: block; margin-top: 16px; font-weight: bold; color: #A1A1AA; }
                         input[type="text"] { width: 100%; padding: 14px; margin-top: 8px; box-sizing: border-box; background: #22222E; border: 1px solid #3F3F4E; color: #fff; border-radius: 8px; font-size: 16px; }
-                        button { background: #00E676; color: #000; border: none; padding: 12px 20px; margin-top: 16px; cursor: pointer; border-radius: 8px; font-size: 15px; font-weight: bold; }
-                        button:hover { background: #00C853; }
+                        button { background: #00E676; color: #000; border: none; padding: 12px 20px; margin-top: 16px; cursor: pointer; border-radius: 8px; font-size: 15px; font-weight: bold; transition: all 0.2s; }
+                        button:hover { opacity: 0.9; transform: translateY(-1px); }
                         .btn-secondary { background: #3D5AFE; color: #fff; }
-                        .btn-danger { background: #FF5252; color: #fff; margin-left: 8px; }
+                        .btn-danger { background: #FF5252; color: #fff; }
                         .info-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
                         .info-table td { padding: 10px; border-bottom: 1px solid #272732; font-size: 15px; }
                         .ip-highlight { color: #00E5FF; font-weight: bold; font-size: 16px; }
                         .url-highlight { color: #00E676; font-weight: bold; font-size: 16px; word-break: break-all; }
                         .note-banner { background: #1E1B4B; border: 1px solid #4338CA; padding: 14px; border-radius: 10px; margin-top: 16px; font-size: 14px; color: #C7D2FE; line-height: 1.5; }
                         .button-group { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+                        
+                        /* Toast Banner */
+                        #toast {
+                            position: fixed;
+                            top: 24px;
+                            right: 24px;
+                            background: #00E676;
+                            color: #000;
+                            padding: 16px 24px;
+                            border-radius: 12px;
+                            font-weight: bold;
+                            font-size: 16px;
+                            box-shadow: 0 10px 30px rgba(0,230,118,0.4);
+                            display: none;
+                            z-index: 9999;
+                        }
                     </style>
                 </head>
                 <body>
+                    <div id="toast">✅ Настройки успешно применены!</div>
+
                     <div class="card">
                         <h1>📺 Smart TV Kiosk Admin</h1>
                         <p>Управление киоском Smart TV в режиме реального времени</p>
                         
-                        <form action="/api/url" method="post">
+                        <form id="urlForm" onsubmit="submitUrlForm(event)">
                             <label for="url">Текущий URL веб-киоска:</label>
                             <input type="text" id="url" name="url" value="${prefs.startUrl}">
                             <button type="submit">Изменить URL на TV</button>
                         </form>
                         
                         <div class="button-group">
-                            <form action="/api/reload" method="post" style="display:inline;">
-                                <button type="submit" class="btn-secondary">🔄 Перезагрузить</button>
-                            </form>
-                            <form action="/api/clearcache" method="post" style="display:inline;">
-                                <button type="submit" class="btn-secondary">🧹 Очистить кэш</button>
-                            </form>
-                            <form action="/api/exit" method="post" style="display:inline;">
-                                <button type="submit" class="btn-danger">🚪 Выйти в меню Android TV</button>
-                            </form>
+                            <button type="button" class="btn-secondary" onclick="sendAction('/api/reload', 'Страница перезагружается...')">🔄 Перезагрузить</button>
+                            <button type="button" class="btn-secondary" onclick="sendAction('/api/clearcache', 'Кэш успешно очищен!')">🧹 Очистить кэш</button>
+                            <button type="button" class="btn-danger" onclick="sendAction('/api/exit', 'Выход в меню Android TV...')">🚪 Выйти в меню Android TV</button>
                         </div>
                     </div>
 
@@ -207,6 +219,47 @@ class KioskHttpServer(
                         </table>
                         <div class="note-banner">$noteText</div>
                     </div>
+
+                    <script>
+                        function showToast(message, isError) {
+                            const toast = document.getElementById('toast');
+                            toast.innerText = message;
+                            toast.style.background = isError ? '#FF5252' : '#00E676';
+                            toast.style.color = isError ? '#FFF' : '#000';
+                            toast.style.display = 'block';
+                            setTimeout(function() {
+                                toast.style.display = 'none';
+                            }, 3500);
+                        }
+
+                        function submitUrlForm(event) {
+                            event.preventDefault();
+                            const newUrl = document.getElementById('url').value;
+                            fetch('/api/url', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: 'url=' + encodeURIComponent(newUrl)
+                            })
+                            .then(function(res) { return res.json(); })
+                            .then(function(data) {
+                                showToast('✅ Новый URL успешно применен на TV!');
+                            })
+                            .catch(function(err) {
+                                showToast('❌ Ошибка отправки!', true);
+                            });
+                        }
+
+                        function sendAction(endpoint, successMessage) {
+                            fetch(endpoint, { method: 'POST' })
+                            .then(function(res) { return res.json(); })
+                            .then(function(data) {
+                                showToast('✅ ' + successMessage);
+                            })
+                            .catch(function(err) {
+                                showToast('❌ Ошибка выполнения!', true);
+                            });
+                        }
+                    </script>
                 </body>
                 </html>
             """.trimIndent()
