@@ -15,6 +15,8 @@ import android.text.InputType
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.webkit.CookieManager
+import android.webkit.HttpAuthHandler
 import android.webkit.SslErrorHandler
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -169,6 +171,15 @@ class KioskActivity : AppCompatActivity() {
         settings.loadWithOverviewMode = true
         settings.mediaPlaybackRequiresUserGesture = false
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+        settings.cacheMode = WebSettings.LOAD_DEFAULT
+
+        @Suppress("DEPRECATION")
+        settings.saveFormData = true
+
+        // Configure CookieManager for persistent session storage across app restarts
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        cookieManager.setAcceptThirdPartyCookies(webView, true)
 
         webView.addJavascriptInterface(KioskJavaScriptInterface(this), "SmartKiosk")
 
@@ -176,6 +187,12 @@ class KioskActivity : AppCompatActivity() {
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 offlineContainer.visibility = View.GONE
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                // Persist session cookies to disk
+                CookieManager.getInstance().flush()
             }
 
             @SuppressLint("WebViewClientOnReceivedSslError")
@@ -186,6 +203,23 @@ class KioskActivity : AppCompatActivity() {
             ) {
                 // Automatically bypass SSL certificate warnings for local HTTPS servers
                 handler?.proceed()
+            }
+
+            override fun onReceivedHttpAuthRequest(
+                view: WebView?,
+                handler: HttpAuthHandler?,
+                host: String?,
+                realm: String?
+            ) {
+                // Auto-reuse saved HTTP Basic/Digest Auth credentials
+                if (handler != null && handler.useHttpAuthUsernamePassword()) {
+                    val credentials = view?.getHttpAuthUsernamePassword(host ?: "", realm ?: "")
+                    if (credentials != null && credentials.size == 2) {
+                        handler.proceed(credentials[0], credentials[1])
+                        return
+                    }
+                }
+                super.onReceivedHttpAuthRequest(view, handler, host, realm)
             }
 
             override fun onReceivedError(
@@ -242,7 +276,8 @@ class KioskActivity : AppCompatActivity() {
 
     fun clearWebViewCache() {
         webView.clearCache(true)
-        Toast.makeText(this, "Кэш очищен", Toast.LENGTH_SHORT).show()
+        CookieManager.getInstance().removeAllCookies(null)
+        Toast.makeText(this, "Кэш и куки очищены", Toast.LENGTH_SHORT).show()
     }
 
     private fun observeNetwork() {
