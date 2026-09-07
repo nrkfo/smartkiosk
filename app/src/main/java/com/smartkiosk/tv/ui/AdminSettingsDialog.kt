@@ -3,6 +3,7 @@ package com.smartkiosk.tv.ui
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.Window
 import android.widget.Button
@@ -29,11 +30,19 @@ class AdminSettingsDialog(
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setContentView(R.layout.dialog_admin_settings)
 
-        // Make window background transparent so rounded dialog shape shows properly
-        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        // Set dialog dimensions to 85% width x 88% height for ideal TV readability
+        window?.let { win ->
+            win.setBackgroundDrawableResource(android.R.color.transparent)
+            val dm = context.resources.displayMetrics
+            val width = (dm.widthPixels * 0.85).toInt()
+            val height = (dm.heightPixels * 0.88).toInt()
+            win.setLayout(width, height)
+            win.setGravity(Gravity.CENTER)
+        }
 
         val etUrl = findViewById<EditText>(R.id.et_start_url)
         val etPin = findViewById<EditText>(R.id.et_admin_pin)
+        val etMediaUrl = findViewById<EditText>(R.id.et_media_url)
         val cbKiosk = findViewById<CheckBox>(R.id.cb_kiosk_enabled)
         val cbAutoLaunch = findViewById<CheckBox>(R.id.cb_auto_launch)
         val cbBlockDownloads = findViewById<CheckBox>(R.id.cb_block_downloads)
@@ -48,6 +57,7 @@ class AdminSettingsDialog(
         // Populate existing preferences
         etUrl.setText(prefs.startUrl)
         etPin.setText(prefs.adminPin)
+        etMediaUrl.setText(prefs.mediaUrl)
         cbKiosk.isChecked = prefs.isKioskModeEnabled
         cbAutoLaunch.isChecked = prefs.isAutoLaunchEnabled
         cbBlockDownloads.isChecked = prefs.isBlockDownloads
@@ -79,9 +89,11 @@ class AdminSettingsDialog(
         btnSave.setOnClickListener {
             val newUrl = etUrl.text.toString().trim()
             val newPin = etPin.text.toString().trim()
+            val newMediaUrl = etMediaUrl.text.toString().trim()
 
             if (newUrl.isNotEmpty()) prefs.startUrl = newUrl
             if (newPin.isNotEmpty()) prefs.adminPin = newPin
+            prefs.mediaUrl = newMediaUrl
 
             prefs.isKioskModeEnabled = cbKiosk.isChecked
             prefs.isAutoLaunchEnabled = cbAutoLaunch.isChecked
@@ -101,7 +113,7 @@ class AdminSettingsDialog(
         // Apply TV Focus scale animation
         val focusableViews = listOf(
             btnQuickReload, btnQuickClearCache, btnSave, btnExit,
-            etUrl, etPin, cbKiosk, cbAutoLaunch, cbBlockDownloads, cbDisableSelection
+            etUrl, etPin, etMediaUrl, cbKiosk, cbAutoLaunch, cbBlockDownloads, cbDisableSelection
         )
         for (view in focusableViews) {
             applyTvFocusAnimation(view)

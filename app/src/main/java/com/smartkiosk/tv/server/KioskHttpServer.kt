@@ -35,6 +35,7 @@ class KioskHttpServer(
         fun onReloadRequested()
         fun onClearCacheRequested()
         fun onExitRequested()
+        fun onSettingsChanged()
     }
 
     private var server = embeddedServer(CIO, host = "0.0.0.0", port = prefs.serverPort) {
@@ -45,7 +46,7 @@ class KioskHttpServer(
                 call.respondText(html, ContentType.Text.Html)
             }
 
-            // API: Info
+            // API: Info & All Settings
             get("/api/info") {
                 val isOwner = KioskAdminReceiver.isDeviceOwner(this@KioskHttpServer.context)
                 val rawIp = KioskWatchdogService.getLocalIpAddress(this@KioskHttpServer.context)
@@ -60,16 +61,48 @@ class KioskHttpServer(
                         "model": "${Build.MANUFACTURER} ${Build.MODEL}",
                         "sdk": ${Build.VERSION.SDK_INT},
                         "startUrl": "${prefs.startUrl}",
+                        "adminPin": "${prefs.adminPin}",
+                        "mediaUrl": "${prefs.mediaUrl}",
+                        "serverPort": ${prefs.serverPort},
                         "pageZoom": ${prefs.pageZoomPercent},
+                        "kioskEnabled": ${prefs.isKioskModeEnabled},
+                        "autoLaunchEnabled": ${prefs.isAutoLaunchEnabled},
+                        "blockDownloads": ${prefs.isBlockDownloads},
+                        "disableTextSelection": ${prefs.isDisableTextSelection},
                         "ram": "${getRamInfo(this@KioskHttpServer.context)}",
                         "storage": "${getStorageInfo(this@KioskHttpServer.context)}",
                         "wifiSignal": "${getWifiSignalInfo(this@KioskHttpServer.context)}",
-                        "kioskEnabled": ${prefs.isKioskModeEnabled},
                         "isDeviceOwner": $isOwner,
                         "uptimeSeconds": ${SystemClock.elapsedRealtime() / 1000}
                     }
                 """.trimIndent()
                 call.respondText(json, ContentType.Application.Json)
+            }
+
+            // API: Update All Settings
+            post("/api/settings") {
+                val params = call.receiveParameters()
+                val newUrl = params["startUrl"]
+                val newPin = params["adminPin"]
+                val newMediaUrl = params["mediaUrl"]
+                val kioskEnabled = params["kioskEnabled"]?.toBoolean()
+                val autoLaunchEnabled = params["autoLaunchEnabled"]?.toBoolean()
+                val blockDownloads = params["blockDownloads"]?.toBoolean()
+                val disableTextSelection = params["disableTextSelection"]?.toBoolean()
+
+                if (!newUrl.isNullOrEmpty()) prefs.startUrl = newUrl
+                if (!newPin.isNullOrEmpty()) prefs.adminPin = newPin
+                if (newMediaUrl != null) prefs.mediaUrl = newMediaUrl
+                if (kioskEnabled != null) prefs.isKioskModeEnabled = kioskEnabled
+                if (autoLaunchEnabled != null) prefs.isAutoLaunchEnabled = autoLaunchEnabled
+                if (blockDownloads != null) prefs.isBlockDownloads = blockDownloads
+                if (disableTextSelection != null) prefs.isDisableTextSelection = disableTextSelection
+
+                CoroutineScope(Dispatchers.Main).launch {
+                    listener?.onSettingsChanged()
+                    sendBroadcast("com.smartkiosk.tv.ACTION_URL_CHANGED")
+                }
+                call.respondText("""{"status": "ok", "message": "Settings updated"}""", ContentType.Application.Json)
             }
 
             // API: Change URL
@@ -192,9 +225,20 @@ class KioskHttpServer(
             val webAdminUrl = if (isEmulator) "http://127.0.0.1:${prefs.serverPort}" else "http://$rawIp:${prefs.serverPort}"
             val noteText = if (isEmulator) "💡 Вы запущены в эмуляторе. Для доступа с компьютера Mac переходите по ссылке <b>http://127.0.0.1:${prefs.serverPort}</b>. На реальном Smart TV здесь будет реальный IP вашей Wi-Fi сети." else "Подключайтесь с любого устройства в той же Wi-Fi/Ethernet сети."
 
+            val isFirstLaunch = prefs.startUrl == PreferencesManager.DEFAULT_START_URL
+
             val ramStr = getRamInfo(context)
             val storageStr = getStorageInfo(context)
             val wifiStr = getWifiSignalInfo(context)
+
+            val welcomeBannerHtml = if (isFirstLaunch) """
+                <div class="card welcome-card">
+                    <h1>👋 Добро пожаловать в Smart TV Kiosk!</h1>
+                    <p>Для первой настройки открытого сайта введите адрес в поле ниже или откройте этот веб-интерфейс с ПК/смартфона по ссылке:</p>
+                    <div class="ip-box">$webAdminUrl</div>
+                    <p class="sub-note">Или нажмите на пульте ТВ <b>Menu (☰)</b> или <b>3x Назад (←)</b> для вызова скрытых настроек.</p>
+                </div>
+            """.trimIndent() else ""
 
             return """
                 <!DOCTYPE html>
@@ -205,20 +249,26 @@ class KioskHttpServer(
                     <title>Smart TV Kiosk Admin Panel</title>
                     <style>
                         body { font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 24px; background: #0D0D10; color: #fff; }
-                        .card { background: #16161D; border: 1px solid #272732; padding: 24px; border-radius: 16px; max-width: 640px; margin: 0 auto 24px auto; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+                        .card { background: #16161D; border: 1px solid #272732; padding: 24px; border-radius: 16px; max-width: 680px; margin: 0 auto 24px auto; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
+                        .welcome-card { background: #1E1B4B; border: 1px solid #6366F1; text-align: center; }
+                        .welcome-card h1 { color: #818CF8; }
+                        .ip-box { background: #0F172A; border: 1px solid #38BDF8; color: #38BDF8; font-size: 24px; font-weight: bold; padding: 16px; border-radius: 12px; margin: 16px 0; word-break: break-all; }
+                        .sub-note { color: #C7D2FE; font-size: 14px; }
                         h1, h2 { color: #00E676; margin-top: 0; }
                         label { display: block; margin-top: 16px; font-weight: bold; color: #A1A1AA; }
-                        input[type="text"] { width: 100%; padding: 14px; margin-top: 8px; box-sizing: border-box; background: #22222E; border: 1px solid #3F3F4E; color: #fff; border-radius: 8px; font-size: 16px; }
-                        button { background: #00E676; color: #000; border: none; padding: 12px 20px; margin-top: 16px; cursor: pointer; border-radius: 8px; font-size: 15px; font-weight: bold; transition: all 0.2s; }
+                        input[type="text"], input[type="password"] { width: 100%; padding: 14px; margin-top: 8px; box-sizing: border-box; background: #22222E; border: 1px solid #3F3F4E; color: #fff; border-radius: 8px; font-size: 16px; }
+                        .checkbox-label { display: flex; align-items: center; gap: 10px; margin-top: 14px; cursor: pointer; color: #FFF; font-size: 15px; }
+                        .checkbox-label input[type="checkbox"] { width: 20px; height: 20px; accent-color: #00E676; }
+                        button { background: #00E676; color: #000; border: none; padding: 14px 24px; margin-top: 20px; cursor: pointer; border-radius: 8px; font-size: 16px; font-weight: bold; transition: all 0.2s; width: 100%; }
                         button:hover { opacity: 0.9; transform: translateY(-1px); }
-                        .btn-secondary { background: #3D5AFE; color: #fff; }
-                        .btn-danger { background: #FF5252; color: #fff; }
+                        .btn-secondary { background: #3D5AFE; color: #fff; width: auto; margin-top: 0; }
+                        .btn-danger { background: #FF5252; color: #fff; width: auto; margin-top: 0; }
                         .info-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
                         .info-table td { padding: 10px; border-bottom: 1px solid #272732; font-size: 15px; }
                         .ip-highlight { color: #00E5FF; font-weight: bold; font-size: 16px; }
                         .url-highlight { color: #00E676; font-weight: bold; font-size: 16px; word-break: break-all; }
                         .note-banner { background: #1E1B4B; border: 1px solid #4338CA; padding: 14px; border-radius: 10px; margin-top: 16px; font-size: 14px; color: #C7D2FE; line-height: 1.5; }
-                        .button-group { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
+                        .button-group { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; }
                         
                         /* Toast Banner */
                         #toast {
@@ -240,14 +290,43 @@ class KioskHttpServer(
                 <body>
                     <div id="toast">✅ Настройки успешно применены!</div>
 
+                    $welcomeBannerHtml
+
                     <div class="card">
-                        <h1>📺 Smart TV Kiosk Admin</h1>
-                        <p>Управление киоском Smart TV в режиме реального времени</p>
+                        <h1>⚙️ Все настройки Smart TV Kiosk</h1>
+                        <p>Настройки синхронизированы 1:1 с интерфейсом на самом телевизоре</p>
                         
-                        <form id="urlForm" onsubmit="submitUrlForm(event)">
-                            <label for="url">Текущий URL веб-киоска:</label>
-                            <input type="text" id="url" name="url" value="${prefs.startUrl}">
-                            <button type="submit">Изменить URL на TV</button>
+                        <form id="settingsForm" onsubmit="submitAllSettings(event)">
+                            <label for="startUrl">Адрес стартовой веб-страницы (Start URL):</label>
+                            <input type="text" id="startUrl" name="startUrl" value="${prefs.startUrl}">
+
+                            <label for="adminPin">PIN-код администратора:</label>
+                            <input type="password" id="adminPin" name="adminPin" value="${prefs.adminPin}">
+
+                            <label for="mediaUrl">Digital Signage URL (видео-реклама, опционально):</label>
+                            <input type="text" id="mediaUrl" name="mediaUrl" value="${prefs.mediaUrl}">
+
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="kioskEnabled" ${if (prefs.isKioskModeEnabled) "checked" else ""}>
+                                🔒 Режим Киоска (LockTask Mode)
+                            </label>
+
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoLaunchEnabled" ${if (prefs.isAutoLaunchEnabled) "checked" else ""}>
+                                🚀 Автозапуск при включении Smart TV
+                            </label>
+
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="blockDownloads" ${if (prefs.isBlockDownloads) "checked" else ""}>
+                                🛡️ Блокировать скачивание файлов (.apk, .pdf)
+                            </label>
+
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="disableTextSelection" ${if (prefs.isDisableTextSelection) "checked" else ""}>
+                                🚫 Запретить выделение текста на страницах
+                            </label>
+
+                            <button type="submit">💾 Сохранить и применить на TV</button>
                         </form>
                         
                         <div class="button-group">
@@ -286,20 +365,28 @@ class KioskHttpServer(
                             }, 3500);
                         }
 
-                        function submitUrlForm(event) {
+                        function submitAllSettings(event) {
                             event.preventDefault();
-                            const newUrl = document.getElementById('url').value;
-                            fetch('/api/url', {
+                            const body = new URLSearchParams();
+                            body.append('startUrl', document.getElementById('startUrl').value);
+                            body.append('adminPin', document.getElementById('adminPin').value);
+                            body.append('mediaUrl', document.getElementById('mediaUrl').value);
+                            body.append('kioskEnabled', document.getElementById('kioskEnabled').checked);
+                            body.append('autoLaunchEnabled', document.getElementById('autoLaunchEnabled').checked);
+                            body.append('blockDownloads', document.getElementById('blockDownloads').checked);
+                            body.append('disableTextSelection', document.getElementById('disableTextSelection').checked);
+
+                            fetch('/api/settings', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                body: 'url=' + encodeURIComponent(newUrl)
+                                body: body.toString()
                             })
                             .then(function(res) { return res.json(); })
                             .then(function(data) {
-                                showToast('✅ Новый URL успешно применен на TV!');
+                                showToast('✅ Все настройки успешно сохранены и применены на TV!');
                             })
                             .catch(function(err) {
-                                showToast('❌ Ошибка отправки!', true);
+                                showToast('❌ Ошибка сохранения!', true);
                             });
                         }
 

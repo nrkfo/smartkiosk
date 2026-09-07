@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:background="@drawable/bg_tv_dialog"
     android:padding="32dp">
 
@@ -144,6 +144,26 @@
             android:focusable="true"
             android:inputType="numberPassword"
             android:maxLength="8"
+            android:padding="14dp"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Digital Signage URL (Видео-реклама, опционально):"
+            android:textColor="#E4E4E7"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_media_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_tv_input"
+            android:focusable="true"
+            android:inputType="textUri"
             android:padding="14dp"
             android:textColor="#FFFFFF"
             android:textSize="16sp" />
