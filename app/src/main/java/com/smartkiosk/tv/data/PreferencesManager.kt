@@ -9,7 +9,13 @@ class PreferencesManager(context: Context) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     var startUrl: String
-        get() = prefs.getString(KEY_START_URL, DEFAULT_START_URL) ?: DEFAULT_START_URL
+        get() {
+            val savedUrl = prefs.getString(KEY_START_URL, DEFAULT_START_URL) ?: DEFAULT_START_URL
+            if (savedUrl == "https://google.com") {
+                return DEFAULT_START_URL
+            }
+            return savedUrl
+        }
         set(value) = prefs.edit().putString(KEY_START_URL, value).apply()
 
     var adminPin: String
@@ -51,7 +57,7 @@ class PreferencesManager(context: Context) {
         private const val KEY_CLEAR_CACHE = "clear_cache"
         private const val KEY_IDLE_TIMEOUT = "idle_timeout"
 
-        const val DEFAULT_START_URL = "https://google.com"
+        const val DEFAULT_START_URL = "http://127.0.0.1:8080"
         const val DEFAULT_ADMIN_PIN = "0000"
         const val DEFAULT_SERVER_PORT = 8080
     }
