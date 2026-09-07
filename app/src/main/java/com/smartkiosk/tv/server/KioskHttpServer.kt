@@ -1,6 +1,7 @@
 package com.smartkiosk.tv.server
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.SystemClock
 import com.smartkiosk.tv.data.PreferencesManager
@@ -30,6 +31,7 @@ class KioskHttpServer(
         fun onUrlChanged(newUrl: String)
         fun onReloadRequested()
         fun onClearCacheRequested()
+        fun onExitRequested()
     }
 
     private var server = embeddedServer(CIO, host = "0.0.0.0", port = prefs.serverPort) {
@@ -71,6 +73,7 @@ class KioskHttpServer(
                     prefs.startUrl = newUrl
                     CoroutineScope(Dispatchers.Main).launch {
                         listener?.onUrlChanged(newUrl)
+                        sendBroadcast("com.smartkiosk.tv.ACTION_URL_CHANGED", "url", newUrl)
                     }
                     call.respondText("""{"status": "ok", "newUrl": "$newUrl"}""", ContentType.Application.Json)
                 } else {
@@ -82,6 +85,7 @@ class KioskHttpServer(
             post("/api/reload") {
                 CoroutineScope(Dispatchers.Main).launch {
                     listener?.onReloadRequested()
+                    sendBroadcast("com.smartkiosk.tv.ACTION_RELOAD")
                 }
                 call.respondText("""{"status": "ok", "action": "reload"}""", ContentType.Application.Json)
             }
@@ -90,10 +94,30 @@ class KioskHttpServer(
             post("/api/clearcache") {
                 CoroutineScope(Dispatchers.Main).launch {
                     listener?.onClearCacheRequested()
+                    sendBroadcast("com.smartkiosk.tv.ACTION_CLEAR_CACHE")
                 }
                 call.respondText("""{"status": "ok", "action": "clearcache"}""", ContentType.Application.Json)
             }
+
+            // API: Exit App to Android TV Home Screen
+            post("/api/exit") {
+                CoroutineScope(Dispatchers.Main).launch {
+                    listener?.onExitRequested()
+                    sendBroadcast("com.smartkiosk.tv.ACTION_EXIT_APP")
+                }
+                call.respondText("""{"status": "ok", "action": "exit"}""", ContentType.Application.Json)
+            }
         }
+    }
+
+    private fun sendBroadcast(action: String, extraKey: String? = null, extraValue: String? = null) {
+        val intent = Intent(action).apply {
+            setPackage(context.packageName)
+            if (extraKey != null && extraValue != null) {
+                putExtra(extraKey, extraValue)
+            }
+        }
+        context.sendBroadcast(intent)
     }
 
     fun start() {
@@ -138,12 +162,13 @@ class KioskHttpServer(
                         button { background: #00E676; color: #000; border: none; padding: 12px 20px; margin-top: 16px; cursor: pointer; border-radius: 8px; font-size: 15px; font-weight: bold; }
                         button:hover { background: #00C853; }
                         .btn-secondary { background: #3D5AFE; color: #fff; }
-                        .btn-danger { background: #FF5252; color: #fff; }
+                        .btn-danger { background: #FF5252; color: #fff; margin-left: 8px; }
                         .info-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
                         .info-table td { padding: 10px; border-bottom: 1px solid #272732; font-size: 15px; }
                         .ip-highlight { color: #00E5FF; font-weight: bold; font-size: 16px; }
                         .url-highlight { color: #00E676; font-weight: bold; font-size: 16px; word-break: break-all; }
                         .note-banner { background: #1E1B4B; border: 1px solid #4338CA; padding: 14px; border-radius: 10px; margin-top: 16px; font-size: 14px; color: #C7D2FE; line-height: 1.5; }
+                        .button-group { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; }
                     </style>
                 </head>
                 <body>
@@ -157,12 +182,15 @@ class KioskHttpServer(
                             <button type="submit">Изменить URL на TV</button>
                         </form>
                         
-                        <div style="margin-top: 20px;">
+                        <div class="button-group">
                             <form action="/api/reload" method="post" style="display:inline;">
-                                <button type="submit" class="btn-secondary">🔄 Перезагрузить страницу</button>
+                                <button type="submit" class="btn-secondary">🔄 Перезагрузить</button>
                             </form>
                             <form action="/api/clearcache" method="post" style="display:inline;">
                                 <button type="submit" class="btn-secondary">🧹 Очистить кэш</button>
+                            </form>
+                            <form action="/api/exit" method="post" style="display:inline;">
+                                <button type="submit" class="btn-danger">🚪 Выйти в меню Android TV</button>
                             </form>
                         </div>
                     </div>
@@ -171,7 +199,7 @@ class KioskHttpServer(
                         <h2>📊 Телеметрия устройства</h2>
                         <table class="info-table">
                             <tr><td><b>IP-адрес TV в сети:</b></td><td><span class="ip-highlight">$displayIp</span></td></tr>
-                            <tr><td><b>Ссылка веб-админки (с компьютера):</b></td><td><span class="url-highlight">$webAdminUrl</span></td></tr>
+                            <tr><td><b>Ссылка веб-админки:</b></td><td><span class="url-highlight">$webAdminUrl</span></td></tr>
                             <tr><td><b>Модель TV:</b></td><td>${Build.MANUFACTURER} ${Build.MODEL}</td></tr>
                             <tr><td><b>Android Version:</b></td><td>Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})</td></tr>
                             <tr><td><b>Device Owner Status:</b></td><td>${if (isOwner) "🟢 Активен (LockTask Mode)" else "⚠️ Нет прав Device Owner"}</td></tr>

@@ -1,8 +1,10 @@
 package com.smartkiosk.tv.ui
 
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.Network
@@ -46,6 +48,17 @@ class KioskActivity : AppCompatActivity() {
     private var backKeyCounter = 0
     private var lastBackKeyTime = 0L
 
+    private val kioskCommandReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                "com.smartkiosk.tv.ACTION_EXIT_APP" -> exitAppToHome()
+                "com.smartkiosk.tv.ACTION_RELOAD" -> reloadWebView()
+                "com.smartkiosk.tv.ACTION_CLEAR_CACHE" -> clearWebViewCache()
+                "com.smartkiosk.tv.ACTION_URL_CHANGED" -> loadContent()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         hideSystemUI()
@@ -70,12 +83,28 @@ class KioskActivity : AppCompatActivity() {
             }
         }
 
+        registerKioskReceiver()
         setupWebView()
         setupLockTaskMode()
         startWatchdogService()
 
         loadContent()
         observeNetwork()
+    }
+
+    private fun registerKioskReceiver() {
+        val filter = IntentFilter().apply {
+            addAction("com.smartkiosk.tv.ACTION_EXIT_APP")
+            addAction("com.smartkiosk.tv.ACTION_RELOAD")
+            addAction("com.smartkiosk.tv.ACTION_CLEAR_CACHE")
+            addAction("com.smartkiosk.tv.ACTION_URL_CHANGED")
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(kioskCommandReceiver, filter, RECEIVER_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(kioskCommandReceiver, filter)
+        }
     }
 
     override fun onResume() {
@@ -114,6 +143,18 @@ class KioskActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    fun exitAppToHome() {
+        prefs.isKioskModeEnabled = false
+        stopLockTaskMode()
+        Toast.makeText(this, "Возврат в меню Android TV...", Toast.LENGTH_SHORT).show()
+        val homeIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        startActivity(homeIntent)
+        finish()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -305,9 +346,7 @@ class KioskActivity : AppCompatActivity() {
                     }
                 },
                 onExitKioskListener = {
-                    prefs.isKioskModeEnabled = false
-                    stopLockTaskMode()
-                    finish()
+                    exitAppToHome()
                 },
                 onQuickReloadListener = {
                     reloadWebView()
@@ -340,6 +379,11 @@ class KioskActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        try {
+            unregisterReceiver(kioskCommandReceiver)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
         exoPlayer?.release()
         exoPlayer = null
         super.onDestroy()
