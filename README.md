@@ -1,7 +1,7 @@
 # 📺 Smart TV Kiosk (Android TV)
 
 <p align="center">
-  <a href="https://github.com/nrkfo/smartkiosk/releases/download/v1.0.0-beta.2/SmartKiosk-v1.0.0-beta.2.apk">
+  <a href="https://github.com/nrkfo/smartkiosk/raw/main/SmartKiosk-v1.0.0-beta.2.apk">
     <img src="https://img.shields.io/badge/Download-SmartKiosk%20v1.0.0--beta.2%20APK-00E676?style=for-the-badge&logo=android&logoColor=black" alt="Download APK" />
   </a>
   <img src="https://img.shields.io/badge/Version-v1.0.0--beta.2-FF9800?style=for-the-badge&logo=github&logoColor=white" alt="Version" />
@@ -80,6 +80,7 @@
   - `POST /api/url` — Динамическая смена стартовой веб-страницы на ТВ.
   - `POST /api/reload` — Перезагрузка текущей страницы.
   - `POST /api/clearcache` — Очистка кэша браузера.
+  - `POST /api/exit` — Выход из приложения в меню Android TV.
 
 ### 🕹️ 5. Smart TV Пульт & Защита PIN-кодом
 - **Навигация DPAD**: Полный контроль фокуса для работы без сенсорного экрана.
@@ -105,25 +106,19 @@
 ## 🔖 История версий (Release History)
 
 ### `v1.0.0-beta.2` — *07.09.2026*
+- 🚪 Добавлена кнопка безопасного выхода в меню Android TV из веб-панели и ТВ-диалога.
 - 🧹 Удалена плавающая иконка шестеренки с экрана для чистого отображения сайтов.
 - ⚡ Мгновенный рендеринг локальной админки по умолчанию без задержек.
 - 🕹️ Улучшен вызов админки через комбинацию 3x `Back (←)`, кнопку `Menu (☰)` или зажатие `OK`.
 - 📱 Отображение реального Wi-Fi/LAN IP-адреса в блоке телеметрии.
-
-### `v1.0.0-beta.1` — *07.09.2026*
-- 🚀 Первый официальный бета-релиз системы **Smart TV Kiosk**.
-- 🔒 Реализация DPC Device Owner и LockTask режима.
-- 🌐 Встроенный Ktor HTTP-сервер на порту 8080 с веб-панелью управления и REST API.
-- 🎨 Обновленный TV UI в стиле Neon SK с анимацией масштабирования фокуса с пульта.
-- 🛡️ Автоматический обход SSL-предупреждений для локальных HTTPS серверов.
 
 ---
 
 ## 🚀 Быстрый старт и установка
 
 ### 1. Прямое скачивание готового APK
-Вы можете сразу скачать скомпилированный APK файл для установки на Smart TV:
-👉 **[Скачать SmartKiosk v1.0.0-beta.2 APK](https://github.com/nrkfo/smartkiosk/releases/download/v1.0.0-beta.2/SmartKiosk-v1.0.0-beta.2.apk)**
+Вы можете сразу скачать скомпилированный APK файл в один клик:  
+👉 **[Скачать SmartKiosk v1.0.0-beta.2 APK](https://github.com/nrkfo/smartkiosk/raw/main/SmartKiosk-v1.0.0-beta.2.apk)**
 
 ---
 
@@ -145,9 +140,6 @@ adb install -r SmartKiosk-v1.0.0-beta.2.apk
 ```bash
 adb shell dpm set-device-owner com.smartkiosk.tv/.dpc.KioskAdminReceiver
 ```
-
-> [!IMPORTANT]
-> Если на устройстве уже заведен профиль пользователя, перед выполнением команды сбросьте устройство до заводских настроек или удалите существующие аккаунты.
 
 ---
 
