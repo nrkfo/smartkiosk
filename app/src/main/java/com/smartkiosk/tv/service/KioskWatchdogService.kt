@@ -54,7 +54,7 @@ class KioskWatchdogService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Smart TV Kiosk Service")
             .setContentText(contentText)
-            .setSmallIcon(R.drawable.app_icon_your_company)
+            .setSmallIcon(R.drawable.ic_kiosk_logo_neon)
             .setOngoing(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
