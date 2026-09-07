@@ -1,10 +1,10 @@
 # 📺 Smart TV Kiosk (Android TV)
 
 <p align="center">
-  <a href="https://github.com/nrkfo/smartkiosk/raw/main/SmartKiosk-v1.0.0-beta.2.apk">
-    <img src="https://img.shields.io/badge/Download-SmartKiosk%20v1.0.0--beta.2%20APK-00E676?style=for-the-badge&logo=android&logoColor=black" alt="Download APK" />
+  <a href="https://github.com/nrkfo/smartkiosk/raw/main/SmartKiosk-v1.0.0.apk">
+    <img src="https://img.shields.io/badge/Download-SmartKiosk%20v1.0.0%20APK-00E676?style=for-the-badge&logo=android&logoColor=black" alt="Download APK" />
   </a>
-  <img src="https://img.shields.io/badge/Version-v1.0.0--beta.2-FF9800?style=for-the-badge&logo=github&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-v1.0.0--Stable-4CAF50?style=for-the-badge&logo=github&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/Platform-Android%20TV%20%7C%20Google%20TV-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android TV" />
   <img src="https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
   <img src="https://img.shields.io/badge/Server-Ktor%20CIO-087CFA?style=for-the-badge&logo=ktor&logoColor=white" alt="Ktor Server" />
@@ -84,7 +84,7 @@
 
 ### 🕹️ 5. Smart TV Пульт & Защита PIN-кодом
 - **Навигация DPAD**: Полный контроль фокуса для работы без сенсорного экрана.
-- **3 Надейных способа вызова админки**: Кнопка `Menu (☰)`, 3x быстрое нажатие `Back (←)` или удерживание `OK`.
+- **3 Надежных способа вызова админки**: Кнопка `Menu (☰)`, 3x быстрое нажатие `Back (←)` или удерживание `OK`.
 - **Автозапуск при включении (Boot Completed)**: Приложение и служба запускаются автоматически при подаче питания на телевизор.
 
 ---
@@ -105,20 +105,32 @@
 
 ## 🔖 История версий (Release History)
 
+### 🎉 `v1.0.0` (Официальный стабильный релиз) — *07.09.2026*
+- 🚀 Первый официальный стабильный релиз системы **Smart TV Kiosk**.
+- 🔒 Защищенный DPC Device Owner и LockTask режим с полной системной блокировкой.
+- 🌐 Встроенный Ktor CIO HTTP-сервер на порту 8080 с веб-панелью управления и REST API.
+- 🕹️ Оптимизированная навигация с пульта ДУ без случайного вызова экранной клавиатуры.
+- 🚪 Кнопка безопасного выхода в меню Android TV с ПК и ТВ.
+- 🛡️ Автоматический обход SSL-предупреждений для локальных HTTPS серверов.
+- 📊 Полная системная телеметрия (RAM, Flash Storage, Wi-Fi RSSI, Uptime, IP).
+- 📺 Встроенный видео-плеер Digital Signage (AndroidX Media3).
+
 ### `v1.0.0-beta.2` — *07.09.2026*
-- 🚪 Добавлена кнопка безопасного выхода в меню Android TV из веб-панели и ТВ-диалога.
 - 🧹 Удалена плавающая иконка шестеренки с экрана для чистого отображения сайтов.
 - ⚡ Мгновенный рендеринг локальной админки по умолчанию без задержек.
 - 🕹️ Улучшен вызов админки через комбинацию 3x `Back (←)`, кнопку `Menu (☰)` или зажатие `OK`.
 - 📱 Отображение реального Wi-Fi/LAN IP-адреса в блоке телеметрии.
+
+### `v1.0.0-beta.1` — *07.09.2026*
+- 🚀 Первый бета-релиз системы **Smart TV Kiosk**.
 
 ---
 
 ## 🚀 Быстрый старт и установка
 
 ### 1. Прямое скачивание готового APK
-Вы можете сразу скачать скомпилированный APK файл в один клик:  
-👉 **[Скачать SmartKiosk v1.0.0-beta.2 APK](https://github.com/nrkfo/smartkiosk/raw/main/SmartKiosk-v1.0.0-beta.2.apk)**
+Вы можете сразу скачать официальный скомпилированный APK файл стабильного релиза:  
+👉 **[Скачать SmartKiosk v1.0.0 Stable APK](https://github.com/nrkfo/smartkiosk/raw/main/SmartKiosk-v1.0.0.apk)**
 
 ---
 
@@ -128,7 +140,7 @@
 
 ```bash
 adb connect <IP_АДРЕС_ТЕЛЕВИЗОРА>:5555
-adb install -r SmartKiosk-v1.0.0-beta.2.apk
+adb install -r SmartKiosk-v1.0.0.apk
 ```
 
 ---

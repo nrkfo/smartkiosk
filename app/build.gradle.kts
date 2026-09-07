@@ -10,8 +10,8 @@ android {
         applicationId = "com.smartkiosk.tv"
         minSdk = 23
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.0.0-beta.2"
+        versionCode = 3
+        versionName = "1.0.0"
     }
 
     buildTypes {
