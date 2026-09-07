@@ -32,6 +32,7 @@ import androidx.media3.ui.PlayerView
 import com.smartkiosk.tv.R
 import com.smartkiosk.tv.data.PreferencesManager
 import com.smartkiosk.tv.dpc.KioskAdminReceiver
+import com.smartkiosk.tv.server.KioskHttpServer
 import com.smartkiosk.tv.service.KioskWatchdogService
 
 class KioskActivity : AppCompatActivity() {
@@ -184,7 +185,14 @@ class KioskActivity : AppCompatActivity() {
             // Web Kiosk Mode
             playerView.visibility = View.GONE
             webView.visibility = View.VISIBLE
-            webView.loadUrl(prefs.startUrl)
+
+            val url = prefs.startUrl
+            if (url.startsWith("http://127.0.0.1") || url.startsWith("http://localhost")) {
+                val html = KioskHttpServer.getDashboardHtml(this, prefs)
+                webView.loadDataWithBaseURL("http://127.0.0.1:8080", html, "text/html", "UTF-8", null)
+            } else {
+                webView.loadUrl(url)
+            }
         }
     }
 
@@ -204,7 +212,7 @@ class KioskActivity : AppCompatActivity() {
         if (prefs.isClearCacheOnReload) {
             webView.clearCache(true)
         }
-        webView.loadUrl(prefs.startUrl)
+        loadContent()
     }
 
     fun clearWebViewCache() {
