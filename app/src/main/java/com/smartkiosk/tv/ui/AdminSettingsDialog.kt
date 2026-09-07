@@ -36,6 +36,8 @@ class AdminSettingsDialog(
         val etPin = findViewById<EditText>(R.id.et_admin_pin)
         val cbKiosk = findViewById<CheckBox>(R.id.cb_kiosk_enabled)
         val cbAutoLaunch = findViewById<CheckBox>(R.id.cb_auto_launch)
+        val cbBlockDownloads = findViewById<CheckBox>(R.id.cb_block_downloads)
+        val cbDisableSelection = findViewById<CheckBox>(R.id.cb_disable_selection)
         val tvNetworkInfo = findViewById<TextView>(R.id.tv_network_info)
         val tvDeviceOwnerBadge = findViewById<TextView>(R.id.tv_device_owner_badge)
         val btnQuickReload = findViewById<Button>(R.id.btn_quick_reload)
@@ -48,6 +50,8 @@ class AdminSettingsDialog(
         etPin.setText(prefs.adminPin)
         cbKiosk.isChecked = prefs.isKioskModeEnabled
         cbAutoLaunch.isChecked = prefs.isAutoLaunchEnabled
+        cbBlockDownloads.isChecked = prefs.isBlockDownloads
+        cbDisableSelection.isChecked = prefs.isDisableTextSelection
 
         val isOwner = KioskAdminReceiver.isDeviceOwner(context)
         if (isOwner) {
@@ -81,6 +85,8 @@ class AdminSettingsDialog(
 
             prefs.isKioskModeEnabled = cbKiosk.isChecked
             prefs.isAutoLaunchEnabled = cbAutoLaunch.isChecked
+            prefs.isBlockDownloads = cbBlockDownloads.isChecked
+            prefs.isDisableTextSelection = cbDisableSelection.isChecked
 
             Toast.makeText(context, "Настройки сохранены", Toast.LENGTH_SHORT).show()
             onSaveListener()
@@ -95,7 +101,7 @@ class AdminSettingsDialog(
         // Apply TV Focus scale animation
         val focusableViews = listOf(
             btnQuickReload, btnQuickClearCache, btnSave, btnExit,
-            etUrl, etPin, cbKiosk, cbAutoLaunch
+            etUrl, etPin, cbKiosk, cbAutoLaunch, cbBlockDownloads, cbDisableSelection
         )
         for (view in focusableViews) {
             applyTvFocusAnimation(view)

@@ -1,8 +1,12 @@
 package com.smartkiosk.tv.server
 
+import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
+import android.net.wifi.WifiManager
 import android.os.Build
+import android.os.StatFs
 import android.os.SystemClock
 import com.smartkiosk.tv.data.PreferencesManager
 import com.smartkiosk.tv.dpc.KioskAdminReceiver
@@ -57,12 +61,29 @@ class KioskHttpServer(
                         "model": "${Build.MANUFACTURER} ${Build.MODEL}",
                         "sdk": ${Build.VERSION.SDK_INT},
                         "startUrl": "${prefs.startUrl}",
+                        "pageZoom": ${prefs.pageZoomPercent},
+                        "volume": ${getVolumePercent(this@KioskHttpServer.context)},
+                        "ram": "${getRamInfo(this@KioskHttpServer.context)}",
+                        "storage": "${getStorageInfo(this@KioskHttpServer.context)}",
+                        "wifiSignal": "${getWifiSignalInfo(this@KioskHttpServer.context)}",
                         "kioskEnabled": ${prefs.isKioskModeEnabled},
                         "isDeviceOwner": $isOwner,
                         "uptimeSeconds": ${SystemClock.elapsedRealtime() / 1000}
                     }
                 """.trimIndent()
                 call.respondText(json, ContentType.Application.Json)
+            }
+
+            // API: Volume Control
+            post("/api/volume") {
+                val params = call.receiveParameters()
+                val level = params["level"]?.toIntOrNull()
+                if (level != null && level in 0..100) {
+                    setVolumePercent(this@KioskHttpServer.context, level)
+                    call.respondText("""{"status": "ok", "volume": $level}""", ContentType.Application.Json)
+                } else {
+                    call.respondText("""{"status": "error", "message": "Invalid level (0..100)"}""", ContentType.Application.Json, HttpStatusCode.BadRequest)
+                }
             }
 
             // API: Change URL
@@ -137,6 +158,59 @@ class KioskHttpServer(
     }
 
     companion object {
+        fun getVolumePercent(context: Context): Int {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            return if (max > 0) (current * 100) / max else 0
+        }
+
+        fun setVolumePercent(context: Context, percent: Int) {
+            val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            val target = (percent * max) / 100
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, target, 0)
+        }
+
+        fun getRamInfo(context: Context): String {
+            try {
+                val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                val memInfo = ActivityManager.MemoryInfo()
+                am.getMemoryInfo(memInfo)
+                val availGb = String.format("%.1f", memInfo.availMem / 1073741824.0)
+                val totalGb = String.format("%.1f", memInfo.totalMem / 1073741824.0)
+                return "$availGb GB / $totalGb GB свободно"
+            } catch (e: Exception) {
+                return "Н/Д"
+            }
+        }
+
+        fun getStorageInfo(context: Context): String {
+            try {
+                val stat = StatFs(context.filesDir.absolutePath)
+                val availGb = String.format("%.1f", stat.availableBytes / 1073741824.0)
+                val totalGb = String.format("%.1f", stat.totalBytes / 1073741824.0)
+                return "$availGb GB / $totalGb GB свободно"
+            } catch (e: Exception) {
+                return "Н/Д"
+            }
+        }
+
+        fun getWifiSignalInfo(context: Context): String {
+            try {
+                val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                val rssi = wifiManager.connectionInfo.rssi
+                if (rssi == 0 || rssi < -120) return "LAN (Ethernet)"
+                return when {
+                    rssi >= -55 -> "$rssi dBm (🟢 Отличный)"
+                    rssi >= -70 -> "$rssi dBm (🟡 Хороший)"
+                    else -> "$rssi dBm (🔴 Слабый)"
+                }
+            } catch (e: Exception) {
+                return "Н/Д"
+            }
+        }
+
         fun getDashboardHtml(context: Context, prefs: PreferencesManager): String {
             val isOwner = KioskAdminReceiver.isDeviceOwner(context)
             val rawIp = KioskWatchdogService.getLocalIpAddress(context)
@@ -145,6 +219,11 @@ class KioskHttpServer(
             val displayIp = if (isEmulator) "$rawIp (Внутренний IP эмулятора)" else rawIp
             val webAdminUrl = if (isEmulator) "http://127.0.0.1:${prefs.serverPort}" else "http://$rawIp:${prefs.serverPort}"
             val noteText = if (isEmulator) "💡 Вы запущены в эмуляторе. Для доступа с компьютера Mac переходите по ссылке <b>http://127.0.0.1:${prefs.serverPort}</b>. На реальном Smart TV здесь будет реальный IP вашей Wi-Fi сети." else "Подключайтесь с любого устройства в той же Wi-Fi/Ethernet сети."
+
+            val currentVol = getVolumePercent(context)
+            val ramStr = getRamInfo(context)
+            val storageStr = getStorageInfo(context)
+            val wifiStr = getWifiSignalInfo(context)
 
             return """
                 <!DOCTYPE html>
@@ -158,7 +237,7 @@ class KioskHttpServer(
                         .card { background: #16161D; border: 1px solid #272732; padding: 24px; border-radius: 16px; max-width: 640px; margin: 0 auto 24px auto; box-shadow: 0 8px 24px rgba(0,0,0,0.6); }
                         h1, h2 { color: #00E676; margin-top: 0; }
                         label { display: block; margin-top: 16px; font-weight: bold; color: #A1A1AA; }
-                        input[type="text"] { width: 100%; padding: 14px; margin-top: 8px; box-sizing: border-box; background: #22222E; border: 1px solid #3F3F4E; color: #fff; border-radius: 8px; font-size: 16px; }
+                        input[type="text"], input[type="range"] { width: 100%; padding: 12px; margin-top: 8px; box-sizing: border-box; background: #22222E; border: 1px solid #3F3F4E; color: #fff; border-radius: 8px; font-size: 16px; }
                         button { background: #00E676; color: #000; border: none; padding: 12px 20px; margin-top: 16px; cursor: pointer; border-radius: 8px; font-size: 15px; font-weight: bold; transition: all 0.2s; }
                         button:hover { opacity: 0.9; transform: translateY(-1px); }
                         .btn-secondary { background: #3D5AFE; color: #fff; }
@@ -199,6 +278,11 @@ class KioskHttpServer(
                             <input type="text" id="url" name="url" value="${prefs.startUrl}">
                             <button type="submit">Изменить URL на TV</button>
                         </form>
+
+                        <div style="margin-top: 20px;">
+                            <label>🔊 Громкость динамиков TV (<span id="volVal">$currentVol%</span>):</label>
+                            <input type="range" id="volRange" min="0" max="100" value="$currentVol" onchange="changeVolume(this.value)">
+                        </div>
                         
                         <div class="button-group">
                             <button type="button" class="btn-secondary" onclick="sendAction('/api/reload', 'Страница перезагружается...')">🔄 Перезагрузить</button>
@@ -208,10 +292,14 @@ class KioskHttpServer(
                     </div>
 
                     <div class="card">
-                        <h2>📊 Телеметрия устройства</h2>
+                        <h2>📊 Телеметрия и мониторинг системы</h2>
                         <table class="info-table">
                             <tr><td><b>IP-адрес TV в сети:</b></td><td><span class="ip-highlight">$displayIp</span></td></tr>
                             <tr><td><b>Ссылка веб-админки:</b></td><td><span class="url-highlight">$webAdminUrl</span></td></tr>
+                            <tr><td><b>Сигнал Wi-Fi / Сеть:</b></td><td><span style="color:#00E5FF; font-weight:bold;">$wifiStr</span></td></tr>
+                            <tr><td><b>Оперативная память (RAM):</b></td><td>$ramStr</td></tr>
+                            <tr><td><b>Накопитель (Flash Storage):</b></td><td>$storageStr</td></tr>
+                            <tr><td><b>Ночная автоперезагрузка:</b></td><td>Включена (${prefs.scheduledReloadHour}:00 AM)</td></tr>
                             <tr><td><b>Модель TV:</b></td><td>${Build.MANUFACTURER} ${Build.MODEL}</td></tr>
                             <tr><td><b>Android Version:</b></td><td>Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})</td></tr>
                             <tr><td><b>Device Owner Status:</b></td><td>${if (isOwner) "🟢 Активен (LockTask Mode)" else "⚠️ Нет прав Device Owner"}</td></tr>
@@ -246,6 +334,19 @@ class KioskHttpServer(
                             })
                             .catch(function(err) {
                                 showToast('❌ Ошибка отправки!', true);
+                            });
+                        }
+
+                        function changeVolume(val) {
+                            document.getElementById('volVal').innerText = val + '%';
+                            fetch('/api/volume', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: 'level=' + val
+                            })
+                            .then(function(res) { return res.json(); })
+                            .then(function(data) {
+                                showToast('🔊 Громкость изменена: ' + val + '%');
                             });
                         }
 

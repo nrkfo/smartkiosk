@@ -42,9 +42,25 @@ class PreferencesManager(context: Context) {
         get() = prefs.getBoolean(KEY_CLEAR_CACHE, false)
         set(value) = prefs.edit().putBoolean(KEY_CLEAR_CACHE, value).apply()
 
-    var idleTimeoutSeconds: Int
-        get() = prefs.getInt(KEY_IDLE_TIMEOUT, 0)
-        set(value) = prefs.edit().putInt(KEY_IDLE_TIMEOUT, value).apply()
+    var pageZoomPercent: Int
+        get() = prefs.getInt(KEY_PAGE_ZOOM, 100)
+        set(value) = prefs.edit().putInt(KEY_PAGE_ZOOM, value).apply()
+
+    var isScheduledReloadEnabled: Boolean
+        get() = prefs.getBoolean(KEY_SCHEDULED_RELOAD_ENABLED, true)
+        set(value) = prefs.edit().putBoolean(KEY_SCHEDULED_RELOAD_ENABLED, value).apply()
+
+    var scheduledReloadHour: Int
+        get() = prefs.getInt(KEY_SCHEDULED_RELOAD_HOUR, 3)
+        set(value) = prefs.edit().putInt(KEY_SCHEDULED_RELOAD_HOUR, value).apply()
+
+    var isBlockDownloads: Boolean
+        get() = prefs.getBoolean(KEY_BLOCK_DOWNLOADS, true)
+        set(value) = prefs.edit().putBoolean(KEY_BLOCK_DOWNLOADS, value).apply()
+
+    var isDisableTextSelection: Boolean
+        get() = prefs.getBoolean(KEY_DISABLE_TEXT_SELECTION, true)
+        set(value) = prefs.edit().putBoolean(KEY_DISABLE_TEXT_SELECTION, value).apply()
 
     companion object {
         private const val PREFS_NAME = "smart_kiosk_prefs"
@@ -55,7 +71,11 @@ class PreferencesManager(context: Context) {
         private const val KEY_SERVER_PORT = "server_port"
         private const val KEY_MEDIA_URL = "media_url"
         private const val KEY_CLEAR_CACHE = "clear_cache"
-        private const val KEY_IDLE_TIMEOUT = "idle_timeout"
+        private const val KEY_PAGE_ZOOM = "page_zoom"
+        private const val KEY_SCHEDULED_RELOAD_ENABLED = "scheduled_reload_enabled"
+        private const val KEY_SCHEDULED_RELOAD_HOUR = "scheduled_reload_hour"
+        private const val KEY_BLOCK_DOWNLOADS = "block_downloads"
+        private const val KEY_DISABLE_TEXT_SELECTION = "disable_text_selection"
 
         const val DEFAULT_START_URL = "http://127.0.0.1:8080"
         const val DEFAULT_ADMIN_PIN = "0000"

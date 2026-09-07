@@ -172,9 +172,27 @@ class KioskActivity : AppCompatActivity() {
         settings.mediaPlaybackRequiresUserGesture = false
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         settings.cacheMode = WebSettings.LOAD_DEFAULT
+        settings.textZoom = prefs.pageZoomPercent
 
         @Suppress("DEPRECATION")
         settings.saveFormData = true
+
+        if (prefs.isDisableTextSelection) {
+            webView.isLongClickable = false
+            webView.setOnLongClickListener { true }
+        } else {
+            webView.isLongClickable = true
+            webView.setOnLongClickListener(null)
+        }
+
+        if (prefs.isBlockDownloads) {
+            settings.setSupportMultipleWindows(false)
+            webView.setDownloadListener { _, _, _, _, _ ->
+                Toast.makeText(this, "⚠️ Скачивание файлов заблокировано в режиме Киоска", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            webView.setDownloadListener(null)
+        }
 
         // Configure CookieManager for persistent session storage across app restarts
         val cookieManager = CookieManager.getInstance()
@@ -213,6 +231,7 @@ class KioskActivity : AppCompatActivity() {
             ) {
                 // Auto-reuse saved HTTP Basic/Digest Auth credentials
                 if (handler != null && handler.useHttpAuthUsernamePassword()) {
+                    @Suppress("DEPRECATION")
                     val credentials = view?.getHttpAuthUsernamePassword(host ?: "", realm ?: "")
                     if (credentials != null && credentials.size == 2) {
                         handler.proceed(credentials[0], credentials[1])
@@ -373,6 +392,7 @@ class KioskActivity : AppCompatActivity() {
                 this,
                 prefs,
                 onSaveListener = {
+                    setupWebView()
                     loadContent()
                     if (prefs.isKioskModeEnabled) {
                         setupLockTaskMode()
