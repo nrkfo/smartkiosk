@@ -47,6 +47,23 @@
             </intent-filter>
         </activity>
 
+        <!-- Redirect MainActivity to KioskActivity for backwards compatibility with cached TV Launcher component names -->
+        <activity
+            android:name=".MainActivity"
+            android:banner="@drawable/app_icon_your_company"
+            android:exported="true"
+            android:icon="@drawable/app_icon_your_company"
+            android:label="@string/app_name"
+            android:logo="@drawable/app_icon_your_company"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- Boot Receiver for Auto-Start on System Startup -->
         <receiver
             android:name=".receiver.BootReceiver"
@@ -86,9 +103,6 @@
                 android:value="Smart TV Kiosk Watchdog and Remote Web Admin Server" />
         </service>
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
         <activity
             android:name=".DetailsActivity"
             android:exported="false" />
